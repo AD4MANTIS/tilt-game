@@ -1,5 +1,6 @@
 # tilt-game
 [![Rust](https://github.com/AD4MANTIS/tilt-game/actions/workflows/rust.yml/badge.svg)](https://github.com/AD4MANTIS/tilt-game/actions/workflows/rust.yml)
+[![CI](https://github.com/AD4MANTIS/tilt-game/actions/workflows/rust-ci.yml/badge.svg)](https://github.com/AD4MANTIS/tilt-game/actions/workflows/rust-ci.yml)
 
 You can shift rocks around!
 
