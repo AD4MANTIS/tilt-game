@@ -1,7 +1,9 @@
 use std::io;
 
 use clap::{Parser, Subcommand};
-use console::Term;
+use console::{style, Term};
+
+type Result<T> = std::result::Result<T, CmdError>;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -11,7 +13,9 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    /// Shows the about information
     About {},
+    /// Load a level with the given number
     Level { level: u64 },
 }
 
@@ -29,8 +33,13 @@ pub enum CmdError {
     Clap(#[from] clap::Error),
 }
 
-pub fn parse_cmd(term: &Term) -> Result<Option<Actions>, CmdError> {
+pub fn parse_cmd(term: &Term) -> Result<Option<Actions>> {
     let cmd = term.read_line()?;
+
+    if cmd.trim() == "?" {
+        write_about_info(term)?;
+        return Ok(None);
+    }
 
     let cli = match Cli::try_parse_from(std::iter::once("").chain(cmd.split(' '))) {
         Ok(cli) => cli,
@@ -41,10 +50,28 @@ pub fn parse_cmd(term: &Term) -> Result<Option<Actions>, CmdError> {
     };
 
     match cli.command {
-        Commands::About {} => term.write_line("AD4MANTIS")?,
+        Commands::About {} => write_about_info(term)?,
         Commands::Level { level } => return Ok(Some(Actions::LoadLevel(level))),
-        // _ => term.write_line(&format!("{:#?}", cli))?,
     };
 
     Ok(None)
+}
+
+pub fn write_about_info(term: &Term) -> io::Result<()> {
+    term.write_line(&format!(
+        "AD4MANTIS\n{}",
+        style("https://github.com/AD4MANTIS/tilt-game").underlined()
+    ))
+}
+
+pub fn write_help_text(term: &Term) -> io::Result<()> {
+    term.write_str(
+        r##"
+Controls:
+[arrow keys] or wasd => move rocks / tilt platform
+Escape => quit the game
+h, ? => help
+: => CLI
+"##,
+    )
 }

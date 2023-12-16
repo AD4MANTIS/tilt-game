@@ -2,14 +2,12 @@ use console::Term;
 
 use crate::{assets::load_map, cli::Actions, Error, Result};
 
-use super::logic::spin_me_round;
-
 pub fn run_main_loop(term: &Term) -> Result<()> {
     let mut current_level = 10;
     let mut map = load_map(current_level).expect("starting level not found");
 
     loop {
-        let result = spin_me_round(term, &map);
+        let result = super::logic::spin_me_round(term, &map);
 
         match result {
             Err(err) => term.write_line(&format!("{}", err))?,

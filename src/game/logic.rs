@@ -3,7 +3,7 @@ use std::{thread::sleep, time::Duration};
 use console::{style, Key, Term};
 
 use crate::{
-    cli::{parse_cmd, Actions},
+    cli::{parse_cmd, write_help_text, Actions},
     map::prelude::*,
     Error, Rock,
 };
@@ -44,16 +44,8 @@ pub fn spin_me_round(term: &Term, map: &Map) -> Result<Option<Actions>, Error> {
                     .sort_unstable_by_key(|pos| (flat_map.width - pos.x) * flat_map.height + pos.y);
                 tilt::<1, 0>(term, &mut flat_map, &mut rock_pos)?;
             }
-            Key::Escape | Key::Char('q') => break,
             Key::Char('?' | 'h') => {
-                term.write_str(
-                    r##"
-[arrow keys] or wasd => move rocks / tilt platform
-q => quit
-h, ? => help
-: => CLI
-"##,
-                )?;
+                write_help_text(term)?;
             }
             Key::Char('r') => {
                 return Ok(Some(Actions::RestartLevel));
@@ -65,6 +57,7 @@ h, ? => help
                     Some(action) => return Ok(Some(action)),
                 };
             }
+            Key::Escape => break,
             _ => {}
         }
     }
@@ -128,7 +121,7 @@ fn tilt<const X: isize, const Y: isize>(
     Ok(())
 }
 
-pub fn get_all_round_rocks(map: &Map) -> Vec<Pos> {
+fn get_all_round_rocks(map: &Map) -> Vec<Pos> {
     map.all_pos()
         .into_iter()
         .filter(|pos| map.get(pos) == Some(&Rock::RoundRock))
