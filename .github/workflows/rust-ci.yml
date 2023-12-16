@@ -85,16 +85,16 @@ jobs:
         if: ${{ !startsWith(matrix.os, 'windows') }}
         run: |
           cd target/${{ matrix.target }}/release
-          tar czf elm-test-rs_${{ matrix.target }}.tar.gz elm-test-rs
+          tar czf tilt-game_${{ matrix.target }}.tar.gz tilt-game
 
       - uses: actions/upload-artifact@v2
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
-          name: elm-test-rs_${{ matrix.target }}.tar.gz
-          path: target/${{ matrix.target }}/release/elm-test-rs_${{ matrix.target }}.tar.gz
+          name: tilt-game_${{ matrix.target }}.tar.gz
+          path: target/${{ matrix.target }}/release/tilt-game_${{ matrix.target }}.tar.gz
 
       - uses: actions/upload-artifact@v2
         if: ${{ startsWith(matrix.os, 'windows') }}
         with:
-          name: elm-test-rs_${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/elm-test-rs.exe
+          name: tilt-game_${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/tilt-game.exe
