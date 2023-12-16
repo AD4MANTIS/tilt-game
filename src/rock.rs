@@ -1,8 +1,16 @@
+use std::fmt::{Display, Write};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Rock {
     RoundRock = 'O' as isize,
     SquareRock = '#' as isize,
     Empty = '.' as isize,
+}
+
+impl Display for Rock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_char(*self as u8 as char)
+    }
 }
 
 impl TryFrom<char> for Rock {
@@ -15,12 +23,6 @@ impl TryFrom<char> for Rock {
             '.' => Ok(Self::Empty),
             _ => Err(()),
         }
-    }
-}
-
-impl ToString for Rock {
-    fn to_string(&self) -> String {
-        (*self as u8 as char).to_string()
     }
 }
 

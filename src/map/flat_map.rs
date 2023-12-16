@@ -4,14 +4,14 @@ use super::prelude::{Map, Pos};
 use std::ops::{Index, IndexMut};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FlatMap {
+pub struct FlatMap<T = Rock> {
     pub width: usize,
     pub height: usize,
-    pub elements: Vec<Rock>,
+    pub elements: Vec<T>,
 }
 
-impl From<FlatMap> for Map {
-    fn from(val: FlatMap) -> Self {
+impl<T: Clone> From<FlatMap<T>> for Map<T> {
+    fn from(val: FlatMap<T>) -> Self {
         Self {
             rows: val
                 .elements
@@ -22,7 +22,7 @@ impl From<FlatMap> for Map {
     }
 }
 
-impl FlatMap {
+impl<T> FlatMap<T> {
     #[inline(always)]
     pub const fn get_index(&self, pos: &Pos) -> usize {
         (pos.y * self.width) + pos.x
@@ -44,8 +44,8 @@ impl FlatMap {
     }
 }
 
-impl From<Map> for FlatMap {
-    fn from(value: Map) -> Self {
+impl<T: Clone> From<Map<T>> for FlatMap<T> {
+    fn from(value: Map<T>) -> Self {
         Self {
             width: value.width(),
             height: value.height(),
@@ -54,8 +54,8 @@ impl From<Map> for FlatMap {
     }
 }
 
-impl Index<&Pos> for FlatMap {
-    type Output = Rock;
+impl<T> Index<&Pos> for FlatMap<T> {
+    type Output = T;
 
     #[inline(always)]
     fn index(&self, pos: &Pos) -> &Self::Output {
