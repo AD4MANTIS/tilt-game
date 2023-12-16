@@ -19,9 +19,10 @@ enum Commands {
     Level { level: u64 },
 }
 
-pub enum Actions {
+pub enum Action {
     LoadLevel(u64),
     RestartLevel,
+    Quit,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -33,11 +34,11 @@ pub enum CmdError {
     Clap(#[from] clap::Error),
 }
 
-pub fn parse_cmd(term: &Term) -> Result<Option<Actions>> {
+pub fn parse_cmd(term: &Term) -> Result<Option<Action>> {
     let cmd = term.read_line()?;
 
     if cmd.trim() == "?" {
-        write_about_info(term)?;
+        write_help_text(term)?;
         return Ok(None);
     }
 
@@ -51,7 +52,7 @@ pub fn parse_cmd(term: &Term) -> Result<Option<Actions>> {
 
     match cli.command {
         Commands::About {} => write_about_info(term)?,
-        Commands::Level { level } => return Ok(Some(Actions::LoadLevel(level))),
+        Commands::Level { level } => return Ok(Some(Action::LoadLevel(level))),
     };
 
     Ok(None)
@@ -66,12 +67,11 @@ pub fn write_about_info(term: &Term) -> io::Result<()> {
 
 pub fn write_help_text(term: &Term) -> io::Result<()> {
     term.write_str(
-        r##"
-Controls:
+        r"Controls:
 [arrow keys] or wasd => move rocks / tilt platform
 Escape => quit the game
 h, ? => help
 : => CLI
-"##,
+",
     )
 }

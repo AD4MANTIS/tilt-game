@@ -3,6 +3,7 @@ use crate::Rock;
 use super::prelude::{Map, Pos};
 use std::ops::{Index, IndexMut};
 
+/// Is generally faster than [Map] because you only need to index once
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FlatMap<T = Rock> {
     pub width: usize,
@@ -33,6 +34,14 @@ impl<T> FlatMap<T> {
         Pos {
             x: index % self.width,
             y: index / self.width,
+        }
+    }
+
+    pub fn try_index(&self, pos: &Pos) -> Option<&T> {
+        if pos.y < self.height && pos.x < self.width {
+            Some(self.index(pos))
+        } else {
+            None
         }
     }
 
@@ -73,7 +82,7 @@ impl IndexMut<&Pos> for FlatMap {
 
 #[cfg(test)]
 mod flat_map_tests {
-    use crate::map::map::get_test_map;
+    use crate::maps::map::get_test_map;
 
     use super::*;
 

@@ -3,75 +3,110 @@ use std::{thread::sleep, time::Duration};
 use console::{style, Key, Term};
 
 use crate::{
-    cli::{parse_cmd, write_help_text, Actions},
-    map::prelude::*,
-    Error, Rock,
+    cli::{parse_cmd, write_help_text, Action},
+    maps::prelude::*,
+    Result, Rock,
 };
 
-pub fn print(term: &Term, flat_map: &FlatMap) -> Result<(), Error> {
+pub fn print_flat_map(term: &Term, flat_map: &FlatMap) -> Result<()> {
     term.clear_screen()?;
     term.write_str(&format!("{:#?}", Map::from(flat_map.clone())))?;
 
     Ok(())
 }
 
-pub fn spin_me_round(term: &Term, map: &Map) -> Result<Option<Actions>, Error> {
+pub fn print_map(term: &Term, map: &Map) -> Result<()> {
+    term.clear_screen()?;
+    term.write_str(&format!("{:#?}", map))?;
+
+    Ok(())
+}
+
+pub fn play_level(term: &Term, map: &Map) -> Result<Action> {
     let mut rock_pos = get_all_round_rocks(map);
     let mut flat_map = FlatMap::from(map.clone());
-
-    print(term, &flat_map)?;
 
     loop {
         let input = term.read_key()?;
         term.clear_line()?;
 
-        match input {
-            Key::Char('w') | Key::ArrowUp => {
-                rock_pos.sort_unstable_by_key(|pos| pos.y * flat_map.width + pos.x);
-                tilt::<0, -1>(term, &mut flat_map, &mut rock_pos)?;
-            }
-            Key::Char('a') | Key::ArrowLeft => {
-                rock_pos.sort_unstable_by_key(|pos| pos.x * flat_map.height + pos.y);
-                tilt::<-1, 0>(term, &mut flat_map, &mut rock_pos)?;
-            }
-            Key::Char('s') | Key::ArrowDown => {
-                rock_pos
-                    .sort_unstable_by_key(|pos| (flat_map.width - pos.y) * flat_map.width + pos.x);
-                tilt::<0, 1>(term, &mut flat_map, &mut rock_pos)?;
-            }
-            Key::Char('d') | Key::ArrowRight => {
-                rock_pos
-                    .sort_unstable_by_key(|pos| (flat_map.width - pos.x) * flat_map.height + pos.y);
-                tilt::<1, 0>(term, &mut flat_map, &mut rock_pos)?;
-            }
-            Key::Char('?' | 'h') => {
-                write_help_text(term)?;
-            }
-            Key::Char('r') => {
-                return Ok(Some(Actions::RestartLevel));
-            }
-            Key::Char(':') => {
-                term.write_str(&format!("{} ", style(":").cyan()))?;
-                match parse_cmd(term)? {
-                    None => {}
-                    Some(action) => return Ok(Some(action)),
-                };
-            }
-            Key::Escape => break,
-            _ => {}
+        if let Some(action) = handle_input(term, &input, &mut flat_map, &mut rock_pos)? {
+            return Ok(action);
         }
+    }
+}
+
+fn handle_input(
+    term: &Term,
+    input: &Key,
+    flat_map: &mut FlatMap,
+    rock_pos: &mut [Pos],
+) -> Result<Option<Action>> {
+    let mut rotate_towards = None::<Direction>;
+
+    match input {
+        Key::Char('w') | Key::ArrowUp => {
+            rotate_towards = Some(Direction::Top);
+        }
+        Key::Char('a') | Key::ArrowLeft => {
+            rotate_towards = Some(Direction::Left);
+        }
+        Key::Char('s') | Key::ArrowDown => {
+            rotate_towards = Some(Direction::Bottom);
+        }
+        Key::Char('d') | Key::ArrowRight => {
+            rotate_towards = Some(Direction::Right);
+        }
+        Key::Char('?' | 'h') => {
+            write_help_text(term)?;
+        }
+        Key::Char('r') => {
+            return Ok(Some(Action::RestartLevel));
+        }
+        Key::Char(':') => {
+            term.write_str(&format!("{} ", style(":").cyan()))?;
+            match parse_cmd(term)? {
+                None => {}
+                Some(action) => return Ok(Some(action)),
+            };
+        }
+        Key::Escape => return Ok(Some(Action::Quit)),
+        _ => {}
+    };
+
+    if let Some(rotate_towards) = rotate_towards {
+        tilt(term, rotate_towards, flat_map, rock_pos, None)?;
     }
 
     Ok(None)
 }
 
-fn tilt<const X: isize, const Y: isize>(
-    term: &Term,
-    map: &mut FlatMap,
-    rock_pos: &mut [Pos],
-) -> Result<(), Error> {
+fn sort_rock_for_rotation_fn(
+    rotate_towards: Direction,
+    map: &FlatMap,
+) -> Box<dyn Fn(&Pos) -> usize> {
     let width = map.width;
     let height = map.height;
+
+    match rotate_towards {
+        Direction::Top => Box::new(move |pos: &Pos| pos.y * width + pos.x),
+        Direction::Left => Box::new(move |pos: &Pos| pos.x * height + pos.y),
+        Direction::Right => Box::new(move |pos: &Pos| (width - pos.x) * height + pos.y),
+        Direction::Bottom => Box::new(move |pos: &Pos| (width - pos.y) * width + pos.x),
+    }
+}
+
+fn tilt(
+    term: &Term,
+    rotate_towards: Direction,
+    map: &mut FlatMap,
+    rock_pos: &mut [Pos],
+    delay_after_each_move: Option<Duration>,
+) -> Result<()> {
+    rock_pos.sort_unstable_by_key(sort_rock_for_rotation_fn(rotate_towards, map));
+
+    let move_direction = rotate_towards.to_offset();
+    let dur = delay_after_each_move.unwrap_or_else(|| Duration::from_millis(150));
 
     loop {
         let mut moved_rocks = 0;
@@ -79,25 +114,11 @@ fn tilt<const X: isize, const Y: isize>(
         for pos in rock_pos.iter_mut() {
             let mut current_pos = pos.clone();
 
-            let mut next_pos = current_pos.clone();
+            let Some(next_pos) = current_pos.try_add(&move_direction) else {
+                continue;
+            };
 
-            if X > 0 {
-                next_pos.x += 1;
-            } else if X < 0 {
-                if current_pos.x == 0 {
-                    continue;
-                }
-                next_pos.x -= 1;
-            } else if Y > 0 {
-                next_pos.y += 1;
-            } else {
-                if current_pos.y == 0 {
-                    continue;
-                }
-                next_pos.y -= 1;
-            }
-
-            if next_pos.y >= height || next_pos.x >= width || map[&next_pos] != Rock::Empty {
+            if map.try_index(&next_pos) != Some(&Rock::Empty) {
                 continue;
             }
 
@@ -114,8 +135,8 @@ fn tilt<const X: isize, const Y: isize>(
             break;
         }
 
-        print(term, map)?;
-        sleep(Duration::from_millis(150));
+        print_flat_map(term, map)?;
+        sleep(dur);
     }
 
     Ok(())
@@ -126,4 +147,61 @@ fn get_all_round_rocks(map: &Map) -> Vec<Pos> {
         .into_iter()
         .filter(|pos| map.get(pos) == Some(&Rock::RoundRock))
         .collect()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn spin() {
+        let map = Map::from(
+            r"O....#....
+            O.OO#....#
+            .....##...
+            OO.#O....O
+            .O.....O#.
+            O.#..O.#.#
+            ..O..#O..O
+            .......O..
+            #....###..
+            #OO..#....",
+        );
+        let mut rock_pos = get_all_round_rocks(&map);
+
+        let mut flat_map = FlatMap::from(map);
+
+        for _ in 0..3 {
+            for direction in [
+                Direction::Top,
+                Direction::Left,
+                Direction::Bottom,
+                Direction::Right,
+            ] {
+                tilt(
+                    &Term::buffered_stdout(),
+                    direction,
+                    &mut flat_map,
+                    &mut rock_pos,
+                    Some(Duration::default()),
+                )
+                .unwrap();
+            }
+        }
+
+        let expected = FlatMap::from(Map::from(
+            r".....#....
+            ....#...O#
+            .....##...
+            ..O#......
+            .....OOO#.
+            .O#...O#.#
+            ....O#...O
+            .......OOO
+            #...O###.O
+            #.OOO#...O",
+        ));
+
+        assert_eq!(expected, flat_map);
+    }
 }

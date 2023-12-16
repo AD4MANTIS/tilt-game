@@ -1,4 +1,4 @@
-use crate::map::prelude::Map;
+use crate::maps::prelude::Map;
 
 pub fn load_map(level: u64) -> Option<Map> {
     Some(Map::from(match level {

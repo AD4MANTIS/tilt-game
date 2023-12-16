@@ -1,33 +1,39 @@
 use console::Term;
 
-use crate::{assets::load_map, cli::Actions, Error, Result};
+use crate::{assets::load_map, cli::Action, Error, Result};
 
-pub fn run_main_loop(term: &Term) -> Result<()> {
+use super::logic::print_map;
+
+pub fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     let mut current_level = 10;
     let mut map = load_map(current_level).expect("starting level not found");
+    print_map(term, &map)?;
 
     loop {
-        let result = super::logic::spin_me_round(term, &map);
+        let result = super::logic::play_level(term, &map);
 
         match result {
-            Err(err) => term.write_line(&format!("{}", err))?,
-            Ok(None) => break,
-            Ok(Some(action)) => {
+            Err(err) => term_err.write_line(&format!("{}", err))?,
+            Ok(action) => {
                 match action {
-                    Actions::LoadLevel(level) => {
+                    Action::LoadLevel(level) => {
                         let Some(m) = load_map(level) else {
-                            Term::stderr()
-                                .write_line(&Error::Level404(level.to_string()).to_string())?;
+                            term_err.write_line(&Error::Level404(level.to_string()).to_string())?;
 
                             continue;
                         };
 
                         current_level = level;
                         map = m;
+
+                        print_map(term, &map)?;
                     }
-                    Actions::RestartLevel => {
+                    Action::RestartLevel => {
                         map = load_map(current_level).unwrap();
+
+                        print_map(term, &map)?;
                     }
+                    Action::Quit => break,
                 };
             }
         };

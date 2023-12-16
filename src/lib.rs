@@ -2,7 +2,7 @@ pub mod assets;
 pub mod cli;
 mod error;
 pub mod game;
-pub mod map;
+pub mod maps;
 mod rock;
 
 pub use rock::Rock;
