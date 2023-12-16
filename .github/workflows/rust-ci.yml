@@ -1,3 +1,4 @@
+# from https://github.com/mpizenberg/elm-test-rs/blob/d9e0c921c986311f80fdfccc7d2cd9502b9a9520/.github/workflows/ci.yml#L9
 name: CI
 
 on:
@@ -42,7 +43,7 @@ jobs:
         if: ${{ contains(matrix.target, 'musl') }}
         run: sudo apt install musl-tools
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
@@ -54,7 +55,7 @@ jobs:
           override: true
 
       - name: Download cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/
@@ -87,13 +88,13 @@ jobs:
           cd target/${{ matrix.target }}/release
           tar czf tilt-game_${{ matrix.target }}.tar.gz tilt-game
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ !startsWith(matrix.os, 'windows') }}
         with:
           name: tilt-game_${{ matrix.target }}.tar.gz
           path: target/${{ matrix.target }}/release/tilt-game_${{ matrix.target }}.tar.gz
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: ${{ startsWith(matrix.os, 'windows') }}
         with:
           name: tilt-game_${{ matrix.target }}
