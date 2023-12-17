@@ -2,9 +2,24 @@ use console::Term;
 
 use crate::{assets::load_map, cli::Action, Error, Result};
 
-use super::logic::print_map;
+use super::{init::init, logic::print_map};
 
-pub fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
+pub fn run() -> Result<()> {
+    let term = Term::stdout();
+    let term_err = Term::stderr();
+
+    term.hide_cursor()?;
+
+    init()?;
+
+    let result = run_main_loop(&term, &term_err);
+
+    term.show_cursor()?;
+
+    result
+}
+
+fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     let mut current_level = 10;
     let mut map = load_map(current_level).expect("starting level not found");
     print_map(term, &map)?;
@@ -29,7 +44,7 @@ pub fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                         print_map(term, &map)?;
                     }
                     Action::RestartLevel => {
-                        map = load_map(current_level).unwrap();
+                        map = load_map(current_level).expect("Current Level should be reloaded");
 
                         print_map(term, &map)?;
                     }

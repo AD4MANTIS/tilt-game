@@ -3,6 +3,8 @@ use std::io;
 use clap::{Parser, Subcommand};
 use console::{style, Term};
 
+use crate::game::setting;
+
 type Result<T> = std::result::Result<T, CmdError>;
 
 #[derive(Parser, Debug)]
@@ -15,8 +17,19 @@ struct Cli {
 enum Commands {
     /// Shows the about information
     About {},
+
     /// Load a level with the given number
     Level { level: u64 },
+
+    /// List the settings<br>
+    /// Located at:
+    /// - `~/.config/tilt-game`
+    /// - `%appdata%/<project_path>/config`
+    /// - `~/Library/Application Support/<project_path>`
+    Settings {
+        #[arg(short, long)]
+        list: bool,
+    },
 }
 
 pub enum Action {
@@ -53,6 +66,9 @@ pub fn parse_cmd(term: &Term) -> Result<Option<Action>> {
     match cli.command {
         Commands::About {} => write_about_info(term)?,
         Commands::Level { level } => return Ok(Some(Action::LoadLevel(level))),
+        Commands::Settings { list: _ } => {
+            term.write_line(&format!("{:?}", setting()))?;
+        }
     };
 
     Ok(None)

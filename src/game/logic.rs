@@ -8,6 +8,8 @@ use crate::{
     Result, Rock,
 };
 
+use super::settings::setting;
+
 pub fn print_flat_map(term: &Term, flat_map: &FlatMap) -> Result<()> {
     term.clear_screen()?;
     term.write_str(&format!("{:#?}", Map::from(flat_map.clone())))?;
@@ -75,7 +77,7 @@ fn handle_input(
     };
 
     if let Some(rotate_towards) = rotate_towards {
-        tilt(term, rotate_towards, flat_map, rock_pos, None)?;
+        tilt(term, rotate_towards, flat_map, rock_pos)?;
     }
 
     Ok(None)
@@ -101,12 +103,13 @@ fn tilt(
     rotate_towards: Direction,
     map: &mut FlatMap,
     rock_pos: &mut [Pos],
-    delay_after_each_move: Option<Duration>,
 ) -> Result<()> {
     rock_pos.sort_unstable_by_key(sort_rock_for_rotation_fn(rotate_towards, map));
 
     let move_direction = rotate_towards.to_offset();
-    let dur = delay_after_each_move.unwrap_or_else(|| Duration::from_millis(150));
+    let dur = setting()
+        .move_delay()
+        .unwrap_or_else(|| Duration::from_millis(150));
 
     loop {
         let mut moved_rocks = 0;
@@ -151,10 +154,14 @@ fn get_all_round_rocks(map: &Map) -> Vec<Pos> {
 
 #[cfg(test)]
 mod test {
+    use crate::game::init::init_test;
+
     use super::*;
 
     #[test]
     fn spin() {
+        init_test();
+
         let map = Map::from(
             r"O....#....
             O.OO#....#
@@ -183,7 +190,6 @@ mod test {
                     direction,
                     &mut flat_map,
                     &mut rock_pos,
-                    Some(Duration::default()),
                 )
                 .unwrap();
             }

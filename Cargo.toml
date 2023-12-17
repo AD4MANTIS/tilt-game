@@ -8,5 +8,9 @@ authors = ["AD4MANTIS"]
 
 [dependencies]
 clap = { version = "4.4.11", features = ["derive"] }
+config = "0.13.4"
 console = "0.15.7"
+directories = "5.0.1"
+once_cell = "1.19.0"
+serde = { version = "1.0.193", features = ["derive"] }
 thiserror = "1.0.51"
