@@ -1,4 +1,4 @@
-use std::fmt::{Display, Write};
+use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tile {
@@ -31,14 +31,18 @@ impl Display for Rock {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RockKind {
-    RoundRock = 'O' as isize,
-    SquareRock = '#' as isize,
-    Empty = '.' as isize,
+    RoundRock,
+    SquareRock,
+    Empty,
 }
 
 impl Display for RockKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_char(*self as u8 as char)
+        f.write_str(match self {
+            Self::RoundRock => "○",
+            Self::SquareRock => "▨",
+            Self::Empty => ".",
+        })
     }
 }
 
