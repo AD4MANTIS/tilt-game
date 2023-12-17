@@ -22,6 +22,11 @@ impl Pos {
 
         Some(self)
     }
+
+    pub fn apply(&mut self, rhs: &Self) {
+        self.x = rhs.x;
+        self.y = rhs.y
+    }
 }
 
 impl Add for Pos {

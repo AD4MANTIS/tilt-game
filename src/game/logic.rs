@@ -92,10 +92,10 @@ fn sort_rock_for_rotation_fn(
     let height = map.height;
 
     match rotate_towards {
-        Direction::Top => Box::new(move |pos: &Pos| pos.y * width + pos.x),
-        Direction::Left => Box::new(move |pos: &Pos| pos.x * height + pos.y),
-        Direction::Right => Box::new(move |pos: &Pos| (width - pos.x) * height + pos.y),
-        Direction::Bottom => Box::new(move |pos: &Pos| (width - pos.y) * width + pos.x),
+        Direction::Top => Box::new(move |pos| pos.y * width + pos.x),
+        Direction::Left => Box::new(move |pos| pos.x * height + pos.y),
+        Direction::Right => Box::new(move |pos| (width - pos.x) * height + pos.y),
+        Direction::Bottom => Box::new(move |pos| (width - pos.y) * width + pos.x),
     }
 }
 
@@ -105,9 +105,23 @@ fn tilt(
     map: &mut FlatMap,
     rock_pos: &mut [Pos],
 ) -> Result<()> {
-    rock_pos.sort_unstable_by_key(sort_rock_for_rotation_fn(rotate_towards, map));
+    struct MovingRock<'a> {
+        pos: &'a mut Pos,
+        direction: Direction,
+    }
 
-    let move_direction = rotate_towards.to_offset();
+    let mut moving_rocks = rock_pos
+        .iter_mut()
+        .map(|pos| MovingRock {
+            pos,
+            direction: rotate_towards,
+        })
+        .collect::<Vec<_>>();
+
+    let sort_fn = sort_rock_for_rotation_fn(rotate_towards, map);
+
+    moving_rocks.sort_unstable_by_key(|moving_rock| sort_fn(moving_rock.pos));
+
     let dur = setting()
         .move_delay()
         .unwrap_or_else(|| Duration::from_millis(150));
@@ -115,10 +129,13 @@ fn tilt(
     loop {
         let mut moved_rocks = 0;
 
-        for pos in rock_pos.iter_mut() {
-            let mut current_pos = pos.clone();
+        for rock in moving_rocks.iter_mut() {
+            let current_rock = rock;
 
-            let Some(next_pos) = current_pos.try_add(&move_direction) else {
+            let Some(next_pos) = current_rock
+                .pos
+                .try_add(&current_rock.direction.to_offset())
+            else {
                 continue;
             };
 
@@ -126,13 +143,10 @@ fn tilt(
                 continue;
             }
 
-            map.swap(&current_pos, &next_pos);
+            map.swap(current_rock.pos, &next_pos);
             moved_rocks += 1;
 
-            current_pos = next_pos;
-
-            pos.x = current_pos.x;
-            pos.y = current_pos.y;
+            current_rock.pos.apply(&next_pos);
         }
 
         if moved_rocks == 0 {
