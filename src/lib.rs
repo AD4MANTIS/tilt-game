@@ -5,7 +5,7 @@ pub mod game;
 pub mod maps;
 mod rock;
 
-pub use rock::Rock;
+pub use rock::Tile;
 
 pub use error::Error;
 

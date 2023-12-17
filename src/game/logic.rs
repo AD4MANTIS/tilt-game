@@ -5,7 +5,8 @@ use console::{style, Key, Term};
 use crate::{
     cli::{parse_cmd, write_help_text, Action},
     maps::prelude::*,
-    Result, Rock,
+    rock::RockKind,
+    Result,
 };
 
 use super::settings::setting;
@@ -121,7 +122,7 @@ fn tilt(
                 continue;
             };
 
-            if map.try_index(&next_pos) != Some(&Rock::Empty) {
+            if map.try_index(&next_pos).map(|tile| tile.rock) != Some(RockKind::Empty) {
                 continue;
             }
 
@@ -148,7 +149,7 @@ fn tilt(
 fn get_all_round_rocks(map: &Map) -> Vec<Pos> {
     map.all_pos()
         .into_iter()
-        .filter(|pos| map.get(pos) == Some(&Rock::RoundRock))
+        .filter(|pos| map.get(pos).map(|tile| tile.rock) == Some(RockKind::RoundRock))
         .collect()
 }
 

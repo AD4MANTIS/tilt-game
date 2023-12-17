@@ -1,33 +1,63 @@
 use std::fmt::{Display, Write};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Tile {
+    pub rock: RockKind,
+}
+
+impl Display for Tile {
+    // TODO [`print_map`] needs custom logic in the future to print the whole map
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <RockKind as Display>::fmt(&self.rock, f)
+    }
+}
+
+impl From<RockKind> for Tile {
+    fn from(value: RockKind) -> Self {
+        Self { rock: value }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Rock {
+    pub kind: RockKind,
+}
+
+impl Display for Rock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <RockKind as Display>::fmt(&self.kind, f)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Rock {
+pub enum RockKind {
     RoundRock = 'O' as isize,
     SquareRock = '#' as isize,
     Empty = '.' as isize,
 }
 
-impl Display for Rock {
+impl Display for RockKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_char(*self as u8 as char)
     }
 }
 
-impl TryFrom<char> for Rock {
-    type Error = ();
-
-    fn try_from(value: char) -> Result<Self, Self::Error> {
-        match value {
-            'O' => Ok(Self::RoundRock),
-            '#' => Ok(Self::SquareRock),
-            '.' => Ok(Self::Empty),
-            _ => Err(()),
-        }
+impl Default for RockKind {
+    fn default() -> Self {
+        Self::Empty
     }
 }
 
-impl Default for Rock {
-    fn default() -> Self {
-        Self::Empty
+impl TryFrom<char> for Tile {
+    type Error = ();
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        Ok(match value {
+            'O' => RockKind::RoundRock,
+            '#' => RockKind::SquareRock,
+            '.' => RockKind::Empty,
+            _ => return Err(()),
+        }
+        .into())
     }
 }

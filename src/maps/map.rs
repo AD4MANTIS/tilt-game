@@ -5,12 +5,12 @@ use std::{
     str::FromStr,
 };
 
-use crate::Rock;
+use crate::Tile;
 
 use super::prelude::{Offset, Pos};
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct Map<T = Rock> {
+pub struct Map<T = Tile> {
     pub rows: Vec<Vec<T>>,
 }
 
@@ -62,13 +62,13 @@ impl<T> Map<T> {
     }
 }
 
-impl<T: Copy> Map<T> {
+impl<T: Clone> Map<T> {
     pub fn swap(&mut self, pos1: &Pos, pos2: &Pos) {
-        let Some(&val1) = self.get(pos1) else {
+        let Some(val1) = self.get(pos1).cloned() else {
             return;
         };
 
-        let Some(&val2) = self.get(pos2) else {
+        let Some(val2) = self.get(pos2).cloned() else {
             return;
         };
 

@@ -21,11 +21,13 @@ enum Commands {
     /// Load a level with the given number
     Level { level: u64 },
 
-    /// List the settings<br>
-    /// Located at:
-    /// - `~/.config/tilt-game`
-    /// - `%appdata%/<project_path>/config`
-    /// - `~/Library/Application Support/<project_path>`
+    /**
+    List the settings
+    Located at:
+    - `~/.config/tilt-game`
+    - `%appdata%/<project_path>/config`
+    - `~/Library/Application Support/<project_path>`
+    */
     Settings {
         #[arg(short, long)]
         list: bool,

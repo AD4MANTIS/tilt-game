@@ -1,11 +1,11 @@
-use crate::Rock;
+use crate::Tile;
 
 use super::prelude::{Map, Pos};
 use std::ops::{Index, IndexMut};
 
 /// Is generally faster than [Map] because you only need to index once
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FlatMap<T = Rock> {
+pub struct FlatMap<T = Tile> {
     pub width: usize,
     pub height: usize,
     pub elements: Vec<T>,

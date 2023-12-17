@@ -1,4 +1,4 @@
-use crate::Rock;
+use crate::rock::RockKind;
 
 use super::prelude::{Map, Pos};
 
@@ -12,7 +12,7 @@ struct AllPositions {
 impl From<&Map> for AllPositions {
     fn from(map: &Map) -> Self {
         let mut all_pos = map.all_pos();
-        all_pos.retain(|pos| map.get(pos) != Some(&Rock::SquareRock));
+        all_pos.retain(|pos| map.get(pos).map(|tile| tile.rock) != Some(RockKind::SquareRock));
         let mut all_pos_horizontal = all_pos.clone();
 
         all_pos_horizontal.sort_by_key(|pos| pos.x * 1000 + pos.y);
