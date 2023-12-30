@@ -1,8 +1,10 @@
 use std::ops::{Add, AddAssign};
 
+use serde::Deserialize;
+
 use super::prelude::Offset;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Deserialize)]
 pub struct Pos {
     pub x: usize,
     pub y: usize,

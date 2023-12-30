@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod classes;
 pub mod cli;
 mod error;
 pub mod game;
