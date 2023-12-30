@@ -11,29 +11,21 @@ use crate::{
 
 use super::settings::setting;
 
-pub fn print_flat_map(term: &Term, flat_map: &FlatMap) -> Result<()> {
-    term.clear_screen()?;
-    term.write_str(&format!("{:#?}", Map::from(flat_map.clone())))?;
-
-    Ok(())
-}
-
-pub fn print_map(term: &Term, map: &Map) -> Result<()> {
+pub fn print_map(term: &Term, map: &MapData) -> Result<()> {
     term.clear_screen()?;
     term.write_str(&format!("{:#?}", map))?;
 
     Ok(())
 }
 
-pub fn play_level(term: &Term, map: &Map) -> Result<Action> {
-    let mut rock_pos = get_all_round_rocks(map);
-    let mut flat_map = FlatMap::from(map.clone());
+pub fn play_level(term: &Term, map_data: &mut MapData) -> Result<Action> {
+    let mut rock_pos = get_all_round_rocks(&map_data.map);
 
     loop {
         let input = term.read_key()?;
         term.clear_line()?;
 
-        if let Some(action) = handle_input(term, &input, &mut flat_map, &mut rock_pos)? {
+        if let Some(action) = handle_input(term, &input, map_data, &mut rock_pos)? {
             return Ok(action);
         }
     }
@@ -42,7 +34,7 @@ pub fn play_level(term: &Term, map: &Map) -> Result<Action> {
 fn handle_input(
     term: &Term,
     input: &Key,
-    flat_map: &mut FlatMap,
+    map_data: &mut MapData,
     rock_pos: &mut [Pos],
 ) -> Result<Option<Action>> {
     let mut rotate_towards = None::<Direction>;
@@ -78,18 +70,15 @@ fn handle_input(
     };
 
     if let Some(rotate_towards) = rotate_towards {
-        tilt(term, rotate_towards, flat_map, rock_pos)?;
+        tilt(term, rotate_towards, map_data, rock_pos)?;
     }
 
     Ok(None)
 }
 
-fn sort_rock_for_rotation_fn(
-    rotate_towards: Direction,
-    map: &FlatMap,
-) -> Box<dyn Fn(&Pos) -> usize> {
-    let width = map.width;
-    let height = map.height;
+fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn(&Pos) -> usize> {
+    let width = map.width();
+    let height = map.height();
 
     match rotate_towards {
         Direction::Top => Box::new(move |pos| pos.y * width + pos.x),
@@ -102,7 +91,7 @@ fn sort_rock_for_rotation_fn(
 fn tilt(
     term: &Term,
     rotate_towards: Direction,
-    map: &mut FlatMap,
+    map_data: &mut MapData,
     rock_pos: &mut [Pos],
 ) -> Result<()> {
     struct MovingRock<'a> {
@@ -118,7 +107,7 @@ fn tilt(
         })
         .collect::<Vec<_>>();
 
-    let sort_fn = sort_rock_for_rotation_fn(rotate_towards, map);
+    let sort_fn = sort_rock_for_rotation_fn(rotate_towards, &map_data.map);
 
     moving_rocks.sort_unstable_by_key(|moving_rock| sort_fn(moving_rock.pos));
 
@@ -139,11 +128,11 @@ fn tilt(
                 continue;
             };
 
-            if map.try_index(&next_pos).map(|tile| tile.rock) != Some(RockKind::Empty) {
+            if map_data.map.get(&next_pos).map(|tile| tile.rock) != Some(RockKind::Empty) {
                 continue;
             }
 
-            map.swap(current_rock.pos, &next_pos);
+            map_data.map.swap(current_rock.pos, &next_pos);
             moved_rocks += 1;
 
             current_rock.pos.apply(&next_pos);
@@ -153,7 +142,7 @@ fn tilt(
             break;
         }
 
-        print_flat_map(term, map)?;
+        print_map(term, map_data)?;
         sleep(dur);
     }
 

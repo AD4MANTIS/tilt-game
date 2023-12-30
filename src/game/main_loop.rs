@@ -22,10 +22,10 @@ pub fn run() -> Result<()> {
 fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     let mut current_level = 10;
     let mut map_data = load_map_data(current_level).expect("starting level not found");
-    print_map(term, &map_data.map)?;
+    print_map(term, &map_data)?;
 
     loop {
-        let result = super::logic::play_level(term, &map_data.map);
+        let result = super::logic::play_level(term, &mut map_data);
 
         match result {
             Err(err) => term_err.write_line(&format!("{}", err))?,
@@ -41,13 +41,13 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                         current_level = level;
                         map_data = m;
 
-                        print_map(term, &map_data.map)?;
+                        print_map(term, &map_data)?;
                     }
                     Action::RestartLevel => {
                         map_data =
                             load_map_data(current_level).expect("Current Level should be reloaded");
 
-                        print_map(term, &map_data.map)?;
+                        print_map(term, &map_data)?;
                     }
                     Action::Quit => break,
                 };

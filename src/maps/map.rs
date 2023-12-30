@@ -1,9 +1,4 @@
-use std::{
-    convert::Infallible,
-    fmt::{Debug, Display},
-    ops::Index,
-    str::FromStr,
-};
+use std::{convert::Infallible, ops::Index, str::FromStr};
 
 use crate::Tile;
 
@@ -20,27 +15,6 @@ impl<T> Index<&Pos> for Map<T> {
     #[inline(always)]
     fn index(&self, pos: &Pos) -> &Self::Output {
         &self.rows[pos.y][pos.x]
-    }
-}
-
-impl<T: Display + Debug> std::fmt::Debug for Map<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for row in self.rows.iter() {
-            if f.alternate() {
-                f.write_str(
-                    &(row
-                        .iter()
-                        .map(ToString::to_string)
-                        .collect::<Vec<_>>()
-                        .join(" ")
-                        + "\n"),
-                )?;
-            } else {
-                f.write_fmt(format_args!("{:?}\n", row))?;
-            }
-        }
-
-        Ok(())
     }
 }
 
@@ -87,7 +61,7 @@ impl<T: Clone> Map<T> {
 
     pub fn all_pos(&self) -> Vec<Pos> {
         let mut all_pos = Vec::with_capacity(
-            self.rows.len() * self.rows.get(0).map(|row| row.len()).unwrap_or(0),
+            self.rows.len() * self.rows.first().map(|row| row.len()).unwrap_or(0),
         );
 
         for row in self.rows.iter().enumerate() {
@@ -97,6 +71,35 @@ impl<T: Clone> Map<T> {
         }
 
         all_pos
+    }
+
+    pub const fn all_pos_iter(&self) -> AllPosIter<T> {
+        AllPosIter(self, None)
+    }
+}
+
+pub struct AllPosIter<'a, T>(&'a Map<T>, Option<Pos>);
+
+impl<'a, T> Iterator for AllPosIter<'a, T> {
+    type Item = Pos;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match &mut self.1 {
+            Some(current_pos) => {
+                current_pos.x += 1;
+                if current_pos.x == self.0.width() {
+                    current_pos.x = 0;
+                    current_pos.y += 1;
+
+                    if current_pos.y == self.0.height() {
+                        return None;
+                    }
+                }
+            }
+            None => self.1 = Some(Pos::default()),
+        };
+
+        self.1.clone()
     }
 }
 
@@ -231,6 +234,20 @@ def
                 Pos { x: 2, y: 4 },
             ]
         );
+    }
+
+    #[test]
+    fn get_all_pos_iter() {
+        let map = get_test_map();
+        let mut pos_iter = map.all_pos_iter();
+
+        assert_eq!(pos_iter.next(), Some(Pos { x: 0, y: 0 }));
+        assert_eq!(pos_iter.next(), Some(Pos { x: 1, y: 0 }));
+        assert_eq!(pos_iter.next(), Some(Pos { x: 2, y: 0 }));
+        assert_eq!(pos_iter.next(), Some(Pos { x: 0, y: 1 }));
+        let mut pos_iter = pos_iter.skip(10);
+        assert_eq!(pos_iter.next(), Some(Pos { x: 2, y: 4 }));
+        assert_eq!(pos_iter.next(), None);
     }
 
     #[test]

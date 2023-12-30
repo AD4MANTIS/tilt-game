@@ -1,9 +1,20 @@
-use std::ops::{Add, Neg};
+use std::ops::{Add, Mul, Neg};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Offset {
     pub x: isize,
     pub y: isize,
+}
+
+impl Mul<isize> for Offset {
+    type Output = Self;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
 }
 
 impl Offset {

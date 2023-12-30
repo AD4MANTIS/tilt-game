@@ -6,7 +6,6 @@ pub struct Tile {
 }
 
 impl Display for Tile {
-    // TODO [`print_map`] needs custom logic in the future to print the whole map
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         <RockKind as Display>::fmt(&self.rock, f)
     }

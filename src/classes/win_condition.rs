@@ -1,7 +1,7 @@
 use crate::maps::prelude::Pos;
 use serde::Deserialize;
 
-// TODO use
+// TODO add checking if won
 #[derive(Debug, Clone, Deserialize)]
 pub struct WinCondition {
     pub general: GeneralWinConditions,
