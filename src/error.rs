@@ -8,7 +8,7 @@ pub enum Error {
     InitError(#[from] InitError),
 
     #[error("Level {0} not found")]
-    Level404(String),
+    LevelNotFound(String),
 
     #[error(transparent)]
     Io(#[from] io::Error),

@@ -3,7 +3,7 @@ use std::io;
 use clap::{Parser, Subcommand};
 use console::{style, Term};
 
-use crate::game::setting;
+use crate::{classes::RoundResult, game::setting};
 
 type Result<T> = std::result::Result<T, CmdError>;
 
@@ -36,6 +36,7 @@ enum Commands {
 
 pub enum Action {
     LoadLevel(u64),
+    Result(RoundResult),
     RestartLevel,
     Quit,
 }

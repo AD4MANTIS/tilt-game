@@ -4,7 +4,7 @@ use crate::Tile;
 
 use super::prelude::{Offset, Pos};
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Map<T = Tile> {
     pub rows: Vec<Vec<T>>,
 }
