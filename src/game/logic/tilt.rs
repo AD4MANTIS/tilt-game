@@ -3,9 +3,9 @@ use std::{thread::sleep, time::Duration};
 use console::Term;
 
 use crate::{
+    classes::RockKind,
     game::{logic::print_map, setting},
     maps::prelude::*,
-    rock::RockKind,
     Result,
 };
 

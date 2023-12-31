@@ -1,8 +1,6 @@
-use std::{convert::Infallible, ops::Index, str::FromStr};
-
-use crate::Tile;
-
 use super::prelude::{Offset, Pos};
+use crate::classes::Tile;
+use std::{convert::Infallible, ops::Index, str::FromStr};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Map<T = Tile> {

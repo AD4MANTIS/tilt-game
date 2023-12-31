@@ -1,8 +1,6 @@
 use crate::{
-    classes::{RockWinConditions, RoundResult},
+    classes::{RockKind, RockWinConditions, RoundResult, Tile},
     maps::prelude::MapData,
-    rock::RockKind,
-    Tile,
 };
 
 pub(super) fn check_result(map_data: &MapData) -> Option<RoundResult> {

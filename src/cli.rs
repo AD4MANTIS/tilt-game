@@ -19,14 +19,14 @@ enum Commands {
     About {},
 
     /// Load a level with the given number
-    Level { level: u64 },
+    Level { level: String },
 
     /**
     List the settings
     Located at:
     - `~/.config/tilt-game`
-    - `%appdata%/<project_path>/config`
-    - `~/Library/Application Support/<project_path>`
+    - `%appdata%/tilt-game/config`
+    - `~/Library/Application Support/tilt-game`
     */
     Settings {
         #[arg(short, long)]
@@ -35,7 +35,7 @@ enum Commands {
 }
 
 pub enum Action {
-    LoadLevel(u64),
+    LoadLevel(String),
     Result(RoundResult),
     RestartLevel,
     Quit,

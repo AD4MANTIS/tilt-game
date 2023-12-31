@@ -1,6 +1,5 @@
-use crate::Tile;
-
 use super::prelude::{Map, Pos};
+use crate::classes::Tile;
 use std::ops::{Index, IndexMut};
 
 /// Is generally faster than [Map] because you only need to index once

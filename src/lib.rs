@@ -4,9 +4,6 @@ pub mod cli;
 mod error;
 pub mod game;
 pub mod maps;
-mod rock;
-
-pub use rock::Tile;
 
 pub use error::Error;
 

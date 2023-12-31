@@ -1,18 +1,17 @@
 use crate::{
-    classes::WinCondition,
+    classes::{Level, WinCondition},
     maps::prelude::{Map, MapData},
 };
 
-pub fn load_map_data(level: u64) -> Option<MapData> {
-    Some(MapData {
+pub fn load_map_data(level: Level) -> MapData {
+    MapData {
         map: Map::from(match level {
-            10 => include_str!("../assets/level/10/start.txt"),
-            60 => include_str!("../assets/level/60/start.txt"),
-            99 => include_str!("../assets/level/99/start.txt"),
-            _ => return None,
+            Level::Lv10 => include_str!("../assets/level/10/start.txt"),
+            Level::Lv60 => include_str!("../assets/level/60/start.txt"),
+            Level::Lv99 => include_str!("../assets/level/99/start.txt"),
         }),
         win: match level {
-            10 => Some(
+            Level::Lv10 => Some(
                 ron::from_str::<WinCondition>(include_str!(
                     "../assets/level/10/win_conditions.ron"
                 ))
@@ -20,5 +19,5 @@ pub fn load_map_data(level: u64) -> Option<MapData> {
             ),
             _ => None,
         },
-    })
+    }
 }

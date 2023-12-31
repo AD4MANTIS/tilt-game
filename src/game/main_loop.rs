@@ -1,9 +1,13 @@
-use std::{thread, time::Duration};
+use std::{str::FromStr, thread, time::Duration};
 
 use console::{style, Term};
 
 use crate::{
-    assets::load_map_data, classes::RoundResult, cli::Action, maps::prelude::MapData, Error, Result,
+    assets::load_map_data,
+    classes::{Level, RoundResult},
+    cli::Action,
+    maps::prelude::MapData,
+    Error, Result,
 };
 
 use super::{init::init, logic::print_map};
@@ -24,8 +28,8 @@ pub fn run() -> Result<()> {
 }
 
 fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
-    let mut current_level = 10;
-    let mut map_data = load_map_data(current_level).expect("starting level not found");
+    let mut current_level = Level::Lv10;
+    let mut map_data = load_map_data(current_level);
     print_map(term, &map_data)?;
 
     loop {
@@ -41,9 +45,12 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
 
         match action {
             Action::LoadLevel(level) => {
-                if let Some(x) = load_level(level, term, term_err)? {
-                    (current_level, map_data) = x;
-                }
+                let Ok(level) = Level::from_str(&level) else {
+                    return Err(Error::LevelNotFound(level));
+                };
+
+                map_data = load_level(level, term)?;
+                current_level = level;
             }
             Action::Result(RoundResult::Won) => {
                 term.write_line(&style("Level won!").on_green().to_string())?;
@@ -53,9 +60,9 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                 term.write_str("Continuing to next level...")?;
                 term.read_key()?;
 
-                if let Some(x) = load_level(get_next_level(current_level), term, term_err)? {
-                    (current_level, map_data) = x;
-                }
+                let next_level = get_next_level(current_level);
+                map_data = load_level(next_level, term)?;
+                current_level = next_level;
             }
             Action::Result(RoundResult::Lost(_reason)) => {
                 term.write_line(&style("You lost!").on_red().to_string())?;
@@ -75,31 +82,26 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     Ok(())
 }
 
-fn reload_level(current_level: u64, term: &Term) -> Result<MapData> {
-    let map_data = load_map_data(current_level).expect("Current Level should be reloaded");
+fn reload_level(current_level: Level, term: &Term) -> Result<MapData> {
+    let map_data = load_map_data(current_level);
 
     print_map(term, &map_data)?;
 
     Ok(map_data)
 }
 
-const fn get_next_level(current_level: u64) -> u64 {
+const fn get_next_level(current_level: Level) -> Level {
     match current_level {
-        10 => 60,
-        60 => 99,
-        99 => 99,
-        _ => 10,
+        Level::Lv10 => Level::Lv60,
+        Level::Lv60 => Level::Lv99,
+        Level::Lv99 => Level::Lv99,
     }
 }
 
-fn load_level(level: u64, term: &Term, term_err: &Term) -> Result<Option<(u64, MapData)>> {
-    let Some(map_data) = load_map_data(level) else {
-        term_err.write_line(&Error::LevelNotFound(level.to_string()).to_string())?;
-
-        return Ok(None);
-    };
+fn load_level(level: Level, term: &Term) -> Result<MapData> {
+    let map_data = load_map_data(level);
 
     print_map(term, &map_data)?;
 
-    Ok(Some((level, map_data)))
+    Ok(map_data)
 }

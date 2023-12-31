@@ -1,4 +1,4 @@
-use crate::rock::RockKind;
+use crate::classes::RockKind;
 
 use super::prelude::{Map, Pos};
 
