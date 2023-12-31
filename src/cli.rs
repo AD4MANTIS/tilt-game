@@ -3,7 +3,10 @@ use std::io;
 use clap::{Parser, Subcommand};
 use console::{style, Term};
 
-use crate::{classes::RoundResult, game::setting};
+use crate::{
+    classes::{RockKind, RoundResult},
+    game::setting,
+};
 
 type Result<T> = std::result::Result<T, CmdError>;
 
@@ -85,12 +88,23 @@ pub fn write_about_info(term: &Term) -> io::Result<()> {
 }
 
 pub fn write_help_text(term: &Term) -> io::Result<()> {
-    term.write_str(
-        r"Controls:
+    term.write_str(&format!(
+        r"
+Move the rocks around to win!
+
+Rock Types
+- empty space ({0})
+- round, rolling rocks ({1})
+- solid, non moving rocks ({2})
+
+Controls:
 [arrow keys] or wasd => move rocks / tilt platform
 Escape => quit the game
 h, ? => help
 : => CLI
 ",
-    )
+        RockKind::Empty,
+        RockKind::RoundRock,
+        RockKind::SquareRock
+    ))
 }
