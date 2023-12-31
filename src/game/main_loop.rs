@@ -47,7 +47,8 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
         match action {
             Action::LoadLevel(level) => {
                 let Ok(level) = Level::from_str(&level) else {
-                    return Err(Error::LevelNotFound(level));
+                    term_err.write_line(&format!("{}", Error::LevelNotFound(level)))?;
+                    continue;
                 };
 
                 map_data = load_level(level, term, &mut stats)?;

@@ -30,7 +30,7 @@ macro_rules! Level {
     };
 }
 
-Level!(1, 2, 5, 10, 60, 99);
+Level!(1, 2, 5, 6, 10, 60, 99);
 
 impl Level {
     pub fn get_next_level(self) -> Self {

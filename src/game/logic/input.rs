@@ -40,11 +40,7 @@ pub(super) fn handle_input(
         }
         Key::Char(':') => {
             term.write_str(&format!("{} ", style(":").cyan()))?;
-            match parse_cmd(term)? {
-                None => {}
-                Some(action) => return Ok(Some(action)),
-            };
-            return Ok(None);
+            return Ok(parse_cmd(term)?);
         }
         Key::Escape => return Ok(Some(Action::Quit)),
         _ => {}
