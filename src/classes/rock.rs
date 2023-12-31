@@ -13,9 +13,7 @@ impl Display for Rock {
     }
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Deserialize, strum_macros::EnumString, strum_macros::Display,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, strum::EnumString, strum::Display)]
 pub enum RockKind {
     #[strum(to_string = ".")]
     Empty,

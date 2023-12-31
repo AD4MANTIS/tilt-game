@@ -28,7 +28,7 @@ pub fn run() -> Result<()> {
 }
 
 fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
-    let mut current_level = Level::Lv10;
+    let mut current_level = Level::Lv1;
     let mut stats = RoundStats::default();
     let mut map_data = load_level(current_level, term, &mut stats)?;
 
@@ -61,7 +61,7 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                 term.write_str("Continuing to next level...")?;
                 term.read_key()?;
 
-                let next_level = get_next_level(current_level);
+                let next_level = current_level.get_next_level();
                 map_data = load_level(next_level, term, &mut stats)?;
                 current_level = next_level;
             }
@@ -81,14 +81,6 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     }
 
     Ok(())
-}
-
-const fn get_next_level(current_level: Level) -> Level {
-    match current_level {
-        Level::Lv10 => Level::Lv60,
-        Level::Lv60 => Level::Lv99,
-        Level::Lv99 => Level::Lv99,
-    }
 }
 
 fn reload_level(current_level: Level, term: &Term, stats: &mut RoundStats) -> Result<MapData> {
