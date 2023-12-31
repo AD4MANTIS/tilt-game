@@ -4,7 +4,7 @@ use console::{style, Term};
 
 use crate::{
     assets::load_map_data,
-    classes::{Level, RoundResult},
+    classes::{Level, RoundResult, RoundStats},
     cli::Action,
     maps::prelude::MapData,
     Error, Result,
@@ -29,11 +29,12 @@ pub fn run() -> Result<()> {
 
 fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     let mut current_level = Level::Lv10;
-    let mut map_data = load_map_data(current_level);
-    print_map(term, &map_data)?;
+    let mut stats = RoundStats::default();
+    let mut map_data = load_level(current_level, term, &mut stats)?;
 
+    // When this loop ends the game quits
     loop {
-        let result = super::logic::play_level(term, &mut map_data);
+        let result = super::logic::play_level(term, &mut map_data, &mut stats);
 
         let action = match result {
             Err(err) => {
@@ -49,7 +50,7 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                     return Err(Error::LevelNotFound(level));
                 };
 
-                map_data = load_level(level, term)?;
+                map_data = load_level(level, term, &mut stats)?;
                 current_level = level;
             }
             Action::Result(RoundResult::Won) => {
@@ -61,7 +62,7 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                 term.read_key()?;
 
                 let next_level = get_next_level(current_level);
-                map_data = load_level(next_level, term)?;
+                map_data = load_level(next_level, term, &mut stats)?;
                 current_level = next_level;
             }
             Action::Result(RoundResult::Lost(_reason)) => {
@@ -70,24 +71,16 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
                 term.write_str("Restart level...")?;
                 term.read_key()?;
 
-                map_data = reload_level(current_level, term)?;
+                map_data = reload_level(current_level, term, &mut stats)?;
             }
             Action::RestartLevel => {
-                map_data = reload_level(current_level, term)?;
+                map_data = reload_level(current_level, term, &mut stats)?;
             }
             Action::Quit => break,
         };
     }
 
     Ok(())
-}
-
-fn reload_level(current_level: Level, term: &Term) -> Result<MapData> {
-    let map_data = load_map_data(current_level);
-
-    print_map(term, &map_data)?;
-
-    Ok(map_data)
 }
 
 const fn get_next_level(current_level: Level) -> Level {
@@ -98,10 +91,20 @@ const fn get_next_level(current_level: Level) -> Level {
     }
 }
 
-fn load_level(level: Level, term: &Term) -> Result<MapData> {
-    let map_data = load_map_data(level);
+fn reload_level(current_level: Level, term: &Term, stats: &mut RoundStats) -> Result<MapData> {
+    let map_data = load_map_data(current_level);
+    *stats = RoundStats::default();
 
-    print_map(term, &map_data)?;
+    print_map(term, &map_data, stats)?;
+
+    Ok(map_data)
+}
+
+fn load_level(level: Level, term: &Term, stats: &mut RoundStats) -> Result<MapData> {
+    let map_data = load_map_data(level);
+    *stats = RoundStats::default();
+
+    print_map(term, &map_data, stats)?;
 
     Ok(map_data)
 }

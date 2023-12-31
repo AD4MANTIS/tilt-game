@@ -13,7 +13,7 @@ MapData(
 ",
     win: (
         general: (
-            max_moves: None
+            max_moves: Some(3)
         ),
         rocks: Pos([
             (x: 8, y: 0),

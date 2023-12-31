@@ -3,7 +3,7 @@ use std::{thread::sleep, time::Duration};
 use console::Term;
 
 use crate::{
-    classes::RockKind,
+    classes::{RockKind, RoundStats},
     game::{logic::print_map, setting},
     maps::prelude::*,
     Result,
@@ -14,6 +14,7 @@ pub(super) fn tilt(
     rotate_towards: Direction,
     map_data: &mut MapData,
     rock_pos: &mut [Pos],
+    stats: &RoundStats,
 ) -> Result<()> {
     struct MovingRock<'a> {
         pos: &'a mut Pos,
@@ -63,7 +64,7 @@ pub(super) fn tilt(
             break;
         }
 
-        print_map(term, map_data)?;
+        print_map(term, map_data, stats)?;
         sleep(dur);
     }
 
@@ -91,7 +92,10 @@ fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn
 
 #[cfg(test)]
 mod test {
-    use crate::game::init::init_test;
+    use crate::{
+        classes::{win_condition::GeneralWinConditions, RockWinConditions, WinCondition},
+        game::init::init_test,
+    };
 
     use super::*;
 
@@ -100,20 +104,26 @@ mod test {
         init_test();
 
         let map = Map::from(
-            r"O....#....
-            O.OO#....#
-            .....##...
-            OO.#O....O
-            .O.....O#.
-            O.#..O.#.#
-            ..O..#O..O
-            .......O..
-            #....###..
-            #OO..#....",
+            r"○ . . . . ▨ . . . .
+            ○ . ○ ○ ▨ . . . . ▨
+            . . . . . ▨ ▨ . . .
+            ○ ○ . ▨ ○ . . . . ○
+            . ○ . . . . . ○ ▨ .
+            ○ . ▨ . . ○ . ▨ . ▨
+            . . ○ . . ▨ ○ . . ○
+            . . . . . . . ○ . .
+            ▨ . . . . ▨ ▨ ▨ . .
+            ▨ ○ ○ . . ▨ . . . .",
         );
         let mut rock_pos = get_all_round_rocks(&map);
 
-        let mut map_data = MapData { map, win: None };
+        let mut map_data = MapData {
+            map,
+            win: WinCondition {
+                general: GeneralWinConditions { max_moves: None },
+                rocks: RockWinConditions::Pos(vec![]),
+            },
+        };
 
         for _ in 0..3 {
             for direction in [
@@ -127,22 +137,23 @@ mod test {
                     direction,
                     &mut map_data,
                     &mut rock_pos,
+                    &Default::default(),
                 )
                 .unwrap();
             }
         }
 
         let expected = Map::from(
-            r".....#....
-            ....#...O#
-            .....##...
-            ..O#......
-            .....OOO#.
-            .O#...O#.#
-            ....O#...O
-            .......OOO
-            #...O###.O
-            #.OOO#...O",
+            r". . . . . ▨ . . . . 
+            . . . . ▨ . . . ○ ▨ 
+            . . . . . ▨ ▨ . . . 
+            . . ○ ▨ . . . . . . 
+            . . . . . ○ ○ ○ ▨ . 
+            . ○ ▨ . . . ○ ▨ . ▨ 
+            . . . . ○ ▨ . . . ○ 
+            . . . . . . . ○ ○ ○ 
+            ▨ . . . ○ ▨ ▨ ▨ . ○ 
+            ▨ . ○ ○ ○ ▨ . . . ○",
         );
 
         assert_eq!(expected, map_data.map);

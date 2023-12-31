@@ -1,4 +1,4 @@
-use std::{convert::Infallible, ops::Index, str::FromStr};
+use std::{convert::Infallible, fmt::Debug, ops::Index, str::FromStr};
 
 use serde::Deserialize;
 
@@ -161,7 +161,7 @@ impl<T: FromStr> From<&str> for Map<T> {
                 .lines()
                 .map(|line| {
                     line.split_whitespace()
-                        .flat_map(T::from_str)
+                        .map(|field| T::from_str(field).ok().expect("should parse field"))
                         .collect::<Vec<_>>()
                 })
                 .collect(),
@@ -190,11 +190,11 @@ mod map_tests {
     fn create_map() {
         let result = Map::<char>::from_str(
             "\
-123
-456
-789
-abc
-def
+1 2 3
+4 5 6
+7 8 9
+a b c
+d e f
 ",
         )
         .unwrap();

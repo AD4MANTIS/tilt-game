@@ -5,4 +5,6 @@ pub enum RoundResult {
     Lost(LostReason),
 }
 
-pub enum LostReason {}
+pub enum LostReason {
+    RoundsExceeded,
+}

@@ -1,9 +1,11 @@
 use crate::{
-    classes::{RockKind, RockWinConditions, RoundResult, Tile},
+    classes::{
+        round_result::LostReason, RockKind, RockWinConditions, RoundResult, RoundStats, Tile,
+    },
     maps::prelude::MapData,
 };
 
-pub(super) fn check_result(map_data: &MapData) -> Option<RoundResult> {
+pub(super) fn check_result(map_data: &MapData, stats: &RoundStats) -> Option<RoundResult> {
     match &map_data.win.rocks {
         RockWinConditions::Pos(pos) => match pos.iter().all(|pos| {
             map_data.map.get(pos)
@@ -16,4 +18,13 @@ pub(super) fn check_result(map_data: &MapData) -> Option<RoundResult> {
         },
         RockWinConditions::Exit(_) => todo!(),
     }
+    .or_else(|| {
+        if let Some(max_moves) = map_data.win.general.max_moves {
+            if stats.moves >= max_moves {
+                return Some(RoundResult::Lost(LostReason::RoundsExceeded));
+            }
+        }
+
+        None
+    })
 }
