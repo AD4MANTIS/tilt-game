@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use serde::Deserialize;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rock {
     pub kind: RockKind,
@@ -11,21 +13,18 @@ impl Display for Rock {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Deserialize, strum_macros::EnumString, strum_macros::Display,
+)]
 pub enum RockKind {
-    RoundRock,
-    SquareRock,
+    #[strum(to_string = ".")]
     Empty,
-}
 
-impl Display for RockKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::RoundRock => "○",
-            Self::SquareRock => "▨",
-            Self::Empty => ".",
-        })
-    }
+    #[strum(to_string = "○")]
+    RoundRock,
+
+    #[strum(to_string = "▨")]
+    SquareRock,
 }
 
 impl Default for RockKind {

@@ -1,0 +1,19 @@
+MapData(
+    map: "
+○ . . ▨ . . . .
+. . . . . . . ▨
+. . . . . . . .
+. . ▨ . . . . ○
+. . . . . ○ ▨ .
+",
+    win: WinCondition(
+        general: (
+            max_moves: None
+        ),
+        rocks: Pos([
+            (x: 7, y: 2),
+            (x: 7, y: 3),
+            (x: 7, y: 4),
+        ])
+    )
+)

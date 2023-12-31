@@ -1,15 +1,16 @@
 use std::fmt::Debug;
 
 use console::{style, Style};
-
-use crate::classes::{win_condition::RockWinConditions, WinCondition};
+use serde::Deserialize;
 
 use super::prelude::{Map, Pos};
+use crate::classes::{win_condition::RockWinConditions, WinCondition};
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MapData {
     pub map: Map,
-    // TODO make not Optional in the future
-    pub win: Option<WinCondition>,
+    pub win: WinCondition,
 }
 
 impl Debug for MapData {
@@ -24,21 +25,15 @@ impl Debug for MapData {
                         .iter()
                         .map(ToString::to_string)
                         .enumerate()
-                        .map(|(x, tile)| {
-                            let Some(win) = &self.win else {
-                                return style(tile);
-                            };
-
-                            match &win.rocks {
-                                RockWinConditions::Pos(pos) => {
-                                    if pos.contains(&Pos { x, y: row_index }) {
-                                        win_tile_style.apply_to(tile)
-                                    } else {
-                                        style(tile)
-                                    }
+                        .map(|(x, tile)| match &self.win.rocks {
+                            RockWinConditions::Pos(pos) => {
+                                if pos.contains(&Pos { x, y: row_index }) {
+                                    win_tile_style.apply_to(tile)
+                                } else {
+                                    style(tile)
                                 }
-                                _ => todo!(),
                             }
+                            _ => todo!(),
                         })
                         .map(|x| x.to_string())
                         .collect::<Vec<_>>()

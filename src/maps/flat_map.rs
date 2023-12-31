@@ -1,6 +1,10 @@
+use std::{
+    ops::{Index, IndexMut},
+    str::FromStr,
+};
+
 use super::prelude::{Map, Pos};
 use crate::classes::Tile;
-use std::ops::{Index, IndexMut};
 
 /// Is generally faster than [Map] because you only need to index once
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -10,7 +14,7 @@ pub struct FlatMap<T = Tile> {
     pub elements: Vec<T>,
 }
 
-impl<T: Clone> From<FlatMap<T>> for Map<T> {
+impl<T: Clone + FromStr> From<FlatMap<T>> for Map<T> {
     fn from(val: FlatMap<T>) -> Self {
         Self {
             rows: val
@@ -52,7 +56,7 @@ impl<T> FlatMap<T> {
     }
 }
 
-impl<T: Clone> From<Map<T>> for FlatMap<T> {
+impl<T: Clone + FromStr> From<Map<T>> for FlatMap<T> {
     fn from(value: Map<T>) -> Self {
         Self {
             width: value.width(),

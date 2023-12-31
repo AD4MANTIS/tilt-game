@@ -6,8 +6,9 @@ mod tilt;
 mod winning;
 
 pub fn print_map(term: &Term, map: &MapData) -> Result<()> {
+    let display_map = format!("{:#?}", map);
     term.clear_screen()?;
-    term.write_str(&format!("{:#?}", map))?;
+    term.write_str(&display_map)?;
 
     Ok(())
 }

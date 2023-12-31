@@ -1,10 +1,20 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
+
+use serde::Deserialize;
 
 use super::RockKind;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Tile {
     pub rock: RockKind,
+}
+
+impl FromStr for Tile {
+    type Err = <RockKind as FromStr>::Err;
+
+    fn from_str(s: &str) -> Result<Self, strum::ParseError> {
+        <RockKind as FromStr>::from_str(s).map(Self::from)
+    }
 }
 
 impl Display for Tile {
@@ -16,19 +26,5 @@ impl Display for Tile {
 impl From<RockKind> for Tile {
     fn from(value: RockKind) -> Self {
         Self { rock: value }
-    }
-}
-
-impl TryFrom<char> for Tile {
-    type Error = ();
-
-    fn try_from(value: char) -> Result<Self, Self::Error> {
-        Ok(match value {
-            'O' => RockKind::RoundRock,
-            '#' => RockKind::SquareRock,
-            '.' => RockKind::Empty,
-            _ => return Err(()),
-        }
-        .into())
     }
 }

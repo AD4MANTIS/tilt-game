@@ -19,14 +19,3 @@ impl FromStr for Level {
         })
     }
 }
-
-impl ToString for Level {
-    fn to_string(&self) -> String {
-        match self {
-            Self::Lv10 => "10",
-            Self::Lv60 => "60",
-            Self::Lv99 => "99",
-        }
-        .to_string()
-    }
-}

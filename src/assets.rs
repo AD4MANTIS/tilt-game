@@ -1,23 +1,22 @@
-use crate::{
-    classes::{Level, WinCondition},
-    maps::prelude::{Map, MapData},
-};
+use crate::{classes::Level, maps::prelude::MapData};
 
 pub fn load_map_data(level: Level) -> MapData {
-    MapData {
-        map: Map::from(match level {
-            Level::Lv10 => include_str!("../assets/level/10/start.txt"),
-            Level::Lv60 => include_str!("../assets/level/60/start.txt"),
-            Level::Lv99 => include_str!("../assets/level/99/start.txt"),
-        }),
-        win: match level {
-            Level::Lv10 => Some(
-                ron::from_str::<WinCondition>(include_str!(
-                    "../assets/level/10/win_conditions.ron"
-                ))
-                .unwrap(),
-            ),
-            _ => None,
-        },
+    let data = match level {
+        Level::Lv10 => include_str!("../assets/levels/10.ron"),
+        Level::Lv60 => include_str!("../assets/levels/60.ron"),
+        Level::Lv99 => include_str!("../assets/levels/99.ron"),
+    };
+
+    let mut map_data = ron::from_str::<MapData>(data).unwrap();
+
+    if map_data
+        .map
+        .rows
+        .first()
+        .map_or(false, |row| row.is_empty())
+    {
+        map_data.map.rows.remove(0);
     }
+
+    map_data
 }

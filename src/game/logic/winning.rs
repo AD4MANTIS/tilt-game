@@ -4,11 +4,7 @@ use crate::{
 };
 
 pub(super) fn check_result(map_data: &MapData) -> Option<RoundResult> {
-    let Some(win) = &map_data.win else {
-        return None;
-    };
-
-    match &win.rocks {
+    match &map_data.win.rocks {
         RockWinConditions::Pos(pos) => match pos.iter().all(|pos| {
             map_data.map.get(pos)
                 == Some(&Tile {

@@ -1,13 +1,17 @@
-use super::prelude::{Offset, Pos};
-use crate::classes::Tile;
 use std::{convert::Infallible, ops::Index, str::FromStr};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Map<T = Tile> {
+use serde::Deserialize;
+
+use super::prelude::{Offset, Pos};
+use crate::classes::Tile;
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(from = "&str")]
+pub struct Map<T: FromStr = Tile> {
     pub rows: Vec<Vec<T>>,
 }
 
-impl<T> Index<&Pos> for Map<T> {
+impl<T: FromStr> Index<&Pos> for Map<T> {
     type Output = T;
 
     #[inline(always)]
@@ -16,7 +20,7 @@ impl<T> Index<&Pos> for Map<T> {
     }
 }
 
-impl<T> Map<T> {
+impl<T: FromStr> Map<T> {
     pub fn width(&self) -> usize {
         self.rows[0].len()
     }
@@ -34,7 +38,7 @@ impl<T> Map<T> {
     }
 }
 
-impl<T: Clone> Map<T> {
+impl<T: Clone + FromStr> Map<T> {
     pub fn swap(&mut self, pos1: &Pos, pos2: &Pos) {
         let Some(val1) = self.get(pos1).cloned() else {
             return;
@@ -76,9 +80,9 @@ impl<T: Clone> Map<T> {
     }
 }
 
-pub struct AllPosIter<'a, T>(&'a Map<T>, Option<Pos>);
+pub struct AllPosIter<'a, T: FromStr>(&'a Map<T>, Option<Pos>);
 
-impl<'a, T> Iterator for AllPosIter<'a, T> {
+impl<'a, T: FromStr> Iterator for AllPosIter<'a, T> {
     type Item = Pos;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -101,10 +105,10 @@ impl<'a, T> Iterator for AllPosIter<'a, T> {
     }
 }
 
-pub struct ColumnIter<'a, T>(&'a Map<T>, Pos);
-pub struct ColumnsIter<'a, T>(&'a Map<T>, usize);
+pub struct ColumnIter<'a, T: FromStr>(&'a Map<T>, Pos);
+pub struct ColumnsIter<'a, T: FromStr>(&'a Map<T>, usize);
 
-impl<'a, T: Copy> Iterator for ColumnIter<'a, T> {
+impl<'a, T: Copy + FromStr> Iterator for ColumnIter<'a, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -116,7 +120,7 @@ impl<'a, T: Copy> Iterator for ColumnIter<'a, T> {
     }
 }
 
-impl<'a, T: Copy> Iterator for ColumnsIter<'a, T> {
+impl<'a, T: Copy + FromStr> Iterator for ColumnsIter<'a, T> {
     type Item = ColumnIter<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -130,7 +134,7 @@ impl<'a, T: Copy> Iterator for ColumnsIter<'a, T> {
     }
 }
 
-impl<T: Default + Clone> Map<T> {
+impl<T: Default + Clone + FromStr> Map<T> {
     pub fn with_size(x: usize, y: usize) -> Self {
         let row = (0..x).map(|_| T::default()).collect::<Vec<_>>();
         Self {
@@ -139,7 +143,7 @@ impl<T: Default + Clone> Map<T> {
     }
 }
 
-impl<T> FromStr for Map<T>
+impl<T: FromStr> FromStr for Map<T>
 where
     Self: for<'a> From<&'a str>,
 {
@@ -150,12 +154,16 @@ where
     }
 }
 
-impl<T: TryFrom<char>> From<&str> for Map<T> {
+impl<T: FromStr> From<&str> for Map<T> {
     fn from(value: &str) -> Self {
         Self {
             rows: value
                 .lines()
-                .map(|line| line.chars().flat_map(T::try_from).collect::<Vec<_>>())
+                .map(|line| {
+                    line.split_whitespace()
+                        .flat_map(T::from_str)
+                        .collect::<Vec<_>>()
+                })
                 .collect(),
         }
     }
