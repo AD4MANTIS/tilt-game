@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use bevy::prelude::*;
 use console::{style, Style};
 use serde::Deserialize;
 
@@ -9,9 +10,43 @@ use crate::{RockWinConditions, WinCondition};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+#[derive(Resource)]
 pub struct MapData {
     pub map: Map,
     pub win: WinCondition,
+}
+
+impl MapData {
+    pub fn get_text_sections(&self) -> impl Iterator<Item = TextSection> + '_ {
+        self.map
+            .rows
+            .iter()
+            .enumerate()
+            .flat_map(move |(row_index, row)| {
+                row.iter().map(ToString::to_string).enumerate().map(
+                    move |(x, mut tile)| match &self.win.rocks {
+                        RockWinConditions::Pos(pos) => {
+                            if x == 0 {
+                                tile.insert(0, '\n');
+                            }
+
+                            let style = if pos.contains(&Pos { x, y: row_index }) {
+                                TextStyle {
+                                    color: Color::rgb_u8(0, 175, 0),
+                                    ..Default::default()
+                                }
+                            } else {
+                                TextStyle::default()
+                            };
+
+                            TextSection::new(format!("{tile} "), style)
+                        }
+                        _ => todo!(),
+                    },
+                )
+            })
+            .chain([TextSection::new("\n", default())])
+    }
 }
 
 impl Debug for MapData {

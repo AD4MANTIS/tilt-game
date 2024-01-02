@@ -1,22 +1,35 @@
-use std::{thread::sleep, time::Duration};
+use std::time::Duration;
 
-use console::Term;
+use bevy::prelude::*;
 
-use classes::{RockKind, RoundStats};
+use classes::RockKind;
 use game_classes::MapData;
+use maps::prelude::Direction;
 use maps::prelude::*;
 
-use crate::{
-    game::{logic::print_map, setting},
-    Result,
-};
+use crate::{game::setting, Result};
+
+#[derive(Resource)]
+struct MoveTimer(Timer);
+
+pub struct TiltMapPlugin();
+
+impl Plugin for TiltMapPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(MoveTimer(Timer::from_seconds(
+            setting()
+                .move_delay()
+                .unwrap_or_else(|| Duration::from_millis(150))
+                .as_secs_f32(),
+            TimerMode::Once,
+        )));
+    }
+}
 
 pub(super) fn tilt(
-    term: &Term,
     rotate_towards: Direction,
     map_data: &mut MapData,
     rock_pos: &mut [Pos],
-    stats: &RoundStats,
 ) -> Result<()> {
     struct MovingRock<'a> {
         pos: &'a mut Pos,
@@ -34,10 +47,6 @@ pub(super) fn tilt(
     let sort_fn = sort_rock_for_rotation_fn(rotate_towards, &map_data.map);
 
     moving_rocks.sort_unstable_by_key(|moving_rock| sort_fn(moving_rock.pos));
-
-    let dur = setting()
-        .move_delay()
-        .unwrap_or_else(|| Duration::from_millis(150));
 
     loop {
         let mut moved_rocks = 0;
@@ -66,8 +75,7 @@ pub(super) fn tilt(
             break;
         }
 
-        print_map(term, map_data, stats)?;
-        sleep(dur);
+        // generate_map_str(map_data, stats);
     }
 
     Ok(())
@@ -133,14 +141,7 @@ mod test {
                 Direction::Bottom,
                 Direction::Right,
             ] {
-                tilt(
-                    &Term::buffered_stdout(),
-                    direction,
-                    &mut map_data,
-                    &mut rock_pos,
-                    &Default::default(),
-                )
-                .unwrap();
+                tilt(direction, &mut map_data, &mut rock_pos).unwrap();
             }
         }
 

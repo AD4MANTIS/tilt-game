@@ -10,6 +10,7 @@ classes = { path = "classes/" }
 game-classes = { path = "game-classes/" }
 maps = { path = "maps/" }
 
+bevy = { version = "0.12.1", features = ["dynamic_linking"] }
 config = "0.13.4"
 console = "0.15.7"
 num-derive = "0.4.1"
@@ -19,3 +20,11 @@ paste = "1.0.14"
 serde = { version = "1.0.193", features = ["derive"] }
 strum = { version = "0.25.0", features = ["derive"] }
 thiserror = "1.0.51"
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3

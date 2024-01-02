@@ -8,5 +8,6 @@ authors.workspace = true
 maps = { workspace = true }
 classes = { workspace = true }
 
+bevy = { workspace = true }
 console = { workspace = true }
 serde = { workspace = true }
