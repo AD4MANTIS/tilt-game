@@ -1,0 +1,12 @@
+[package]
+name = "game-classes"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+
+[dependencies]
+maps = { workspace = true }
+classes = { workspace = true }
+
+console = { workspace = true }
+serde = { workspace = true }

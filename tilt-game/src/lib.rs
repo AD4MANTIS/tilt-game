@@ -1,9 +1,7 @@
-pub mod assets;
-pub mod classes;
-pub mod cli;
+pub(crate) mod assets;
+pub(crate) mod cli;
 mod error;
-pub mod game;
-pub mod maps;
+pub(crate) mod game;
 
 pub use error::Error;
 

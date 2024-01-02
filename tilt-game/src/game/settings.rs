@@ -2,9 +2,8 @@ use std::time::Duration;
 
 use config::{Config, File};
 use directories::ProjectDirs;
-use serde::{Deserialize, Serialize};
-
 use once_cell::sync::OnceCell;
+use serde::{Deserialize, Serialize};
 
 use super::init::InitError;
 

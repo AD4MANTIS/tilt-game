@@ -3,10 +3,9 @@ use std::io;
 use clap::{Parser, Subcommand};
 use console::{style, Term};
 
-use crate::{
-    classes::{RockKind, RoundResult},
-    game::setting,
-};
+use classes::{RockKind, RoundResult};
+
+use crate::game::setting;
 
 type Result<T> = std::result::Result<T, CmdError>;
 

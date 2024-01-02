@@ -2,8 +2,9 @@ use std::{convert::Infallible, fmt::Debug, ops::Index, str::FromStr};
 
 use serde::Deserialize;
 
+use classes::Tile;
+
 use super::prelude::{Offset, Pos};
-use crate::classes::Tile;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(from = "&str")]

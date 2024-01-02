@@ -2,10 +2,12 @@ use std::{thread::sleep, time::Duration};
 
 use console::Term;
 
+use classes::{RockKind, RoundStats};
+use game_classes::MapData;
+use maps::prelude::*;
+
 use crate::{
-    classes::{RockKind, RoundStats},
     game::{logic::print_map, setting},
-    maps::prelude::*,
     Result,
 };
 
@@ -92,10 +94,9 @@ fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        classes::{win_condition::GeneralWinConditions, RockWinConditions, WinCondition},
-        game::init::init_test,
-    };
+    use game_classes::{GeneralWinConditions, RockWinConditions, WinCondition};
+
+    use crate::game::init::init_test;
 
     use super::*;
 

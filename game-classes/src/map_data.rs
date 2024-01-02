@@ -3,8 +3,9 @@ use std::fmt::Debug;
 use console::{style, Style};
 use serde::Deserialize;
 
-use super::prelude::{Map, Pos};
-use crate::classes::{win_condition::RockWinConditions, WinCondition};
+use maps::prelude::{Map, Pos};
+
+use crate::{RockWinConditions, WinCondition};
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

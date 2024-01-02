@@ -3,8 +3,9 @@ use std::{
     str::FromStr,
 };
 
+use classes::Tile;
+
 use super::prelude::{Map, Pos};
-use crate::classes::Tile;
 
 /// Is generally faster than [Map] because you only need to index once
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -85,7 +86,7 @@ impl IndexMut<&Pos> for FlatMap {
 
 #[cfg(test)]
 mod flat_map_tests {
-    use crate::maps::map::get_test_map;
+    use crate::map::get_test_map;
 
     use super::*;
 

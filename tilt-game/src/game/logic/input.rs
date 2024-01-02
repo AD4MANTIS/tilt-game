@@ -1,9 +1,11 @@
 use console::{style, Key, Term};
 
+use classes::RoundStats;
+use game_classes::MapData;
+use maps::prelude::*;
+
 use crate::{
-    classes::RoundStats,
     cli::{parse_cmd, write_help_text, Action},
-    maps::prelude::*,
     Result,
 };
 

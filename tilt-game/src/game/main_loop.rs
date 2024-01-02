@@ -1,16 +1,12 @@
 use std::{str::FromStr, thread, time::Duration};
 
-use console::{style, Term};
+use console::{style, Key, Term};
 
-use crate::{
-    assets::load_map_data,
-    classes::{Level, RoundResult, RoundStats},
-    cli::Action,
-    maps::prelude::MapData,
-    Error, Result,
-};
+use classes::{Level, RoundResult, RoundStats};
+use game_classes::MapData;
 
 use super::{init::init, logic::print_map};
+use crate::{assets::load_map_data, cli::Action, Error, Result};
 
 pub fn run() -> Result<()> {
     let term = Term::stdout();
@@ -59,12 +55,14 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
 
                 thread::sleep(Duration::from_secs(1));
 
-                term.write_str("Continuing to next level...")?;
-                term.read_key()?;
-
-                let next_level = current_level.get_next_level();
-                map_data = load_level(next_level, term, &mut stats)?;
-                current_level = next_level;
+                term.write_str(r#"Continuing to next level... (press "r" to restart)"#)?;
+                if term.read_key()? == Key::Char('r') {
+                    map_data = reload_level(current_level, term, &mut stats)?;
+                } else {
+                    let next_level = current_level.get_next_level();
+                    map_data = load_level(next_level, term, &mut stats)?;
+                    current_level = next_level;
+                }
             }
             Action::Result(RoundResult::Lost(_reason)) => {
                 term.write_line(&style("You lost!").on_red().to_string())?;

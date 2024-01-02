@@ -1,0 +1,16 @@
+[package]
+name = "classes"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+include_dir = "0.7.3"
+num-derive = { workspace = true }
+num-traits = { workspace = true }
+paste = { workspace = true }
+serde = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }

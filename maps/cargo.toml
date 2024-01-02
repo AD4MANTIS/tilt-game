@@ -1,0 +1,11 @@
+[package]
+name = "maps"
+edition = "2021"
+version.workspace = true
+authors.workspace = true
+
+[dependencies]
+classes = { workspace = true }
+
+serde = { workspace = true }
+thiserror = { workspace = true }

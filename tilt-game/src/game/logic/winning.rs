@@ -1,9 +1,5 @@
-use crate::{
-    classes::{
-        round_result::LostReason, RockKind, RockWinConditions, RoundResult, RoundStats, Tile,
-    },
-    maps::prelude::MapData,
-};
+use classes::{LostReason, RockKind, RoundResult, RoundStats, Tile};
+use game_classes::{MapData, RockWinConditions};
 
 pub(super) fn check_result(map_data: &MapData, stats: &RoundStats) -> Option<RoundResult> {
     match &map_data.win.rocks {

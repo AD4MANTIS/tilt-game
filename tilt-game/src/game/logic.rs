@@ -1,5 +1,9 @@
-use crate::{classes::RoundStats, cli::Action, maps::prelude::*, Result};
 use console::Term;
+
+use classes::RoundStats;
+use game_classes::MapData;
+
+use crate::{cli::Action, Result};
 
 mod input;
 mod tilt;

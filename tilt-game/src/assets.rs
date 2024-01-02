@@ -1,4 +1,5 @@
-use crate::{classes::Level, maps::prelude::MapData};
+use classes::Level;
+use game_classes::MapData;
 
 pub fn load_map_data(level: Level) -> MapData {
     let data = level.get_data();
