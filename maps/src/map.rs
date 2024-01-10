@@ -1,15 +1,27 @@
-use std::{convert::Infallible, fmt::Debug, ops::Index, str::FromStr};
+pub mod column_iter;
+pub mod row_iter;
 
+use std::{
+    cmp::Ordering, collections::HashMap, convert::Infallible, fmt::Debug, ops::Index, str::FromStr,
+};
+
+use bevy_math::{URect, UVec2};
 use serde::Deserialize;
 
 use classes::Tile;
 
-use super::prelude::{Offset, Pos};
+use self::{
+    column_iter::{ColumnIter, ColumnsIter},
+    row_iter::{RowIter, RowsIter},
+};
+
+use super::prelude::Pos;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(from = "&str")]
 pub struct Map<T: FromStr = Tile> {
-    pub rows: Vec<Vec<T>>,
+    pub rect: URect,
+    pub items: HashMap<Pos, T>,
 }
 
 impl<T: FromStr> Index<&Pos> for Map<T> {
@@ -17,25 +29,82 @@ impl<T: FromStr> Index<&Pos> for Map<T> {
 
     #[inline(always)]
     fn index(&self, pos: &Pos) -> &Self::Output {
-        &self.rows[pos.y][pos.x]
+        &self.items[pos]
     }
 }
 
 impl<T: FromStr> Map<T> {
-    pub fn width(&self) -> usize {
-        self.rows[0].len()
+    pub fn new(items: impl IntoIterator<Item = impl IntoIterator<Item = T>>) -> Self {
+        let items: HashMap<_, _> = items
+            .into_iter()
+            .enumerate()
+            .flat_map(|row| {
+                row.1
+                    .into_iter()
+                    .enumerate()
+                    .map(move |(x, item)| (UVec2::new(x as u32, row.0 as u32), item))
+            })
+            .collect();
+
+        Self {
+            rect: URect::from_corners(
+                UVec2::ZERO,
+                UVec2::new(
+                    items.keys().map(|pos| pos.x).max().unwrap_or(0),
+                    items.keys().map(|pos| pos.y).max().unwrap_or(0),
+                ),
+            ),
+            items,
+        }
     }
 
-    pub fn height(&self) -> usize {
-        self.rows.len()
+    pub const fn width(&self) -> u32 {
+        self.rect.width() + 1
+    }
+
+    pub const fn height(&self) -> u32 {
+        self.rect.height() + 1
     }
 
     pub fn get(&self, pos: &Pos) -> Option<&T> {
-        self.rows.get(pos.y)?.get(pos.x)
+        self.items.get(pos)
     }
 
     pub fn get_mut(&mut self, pos: &Pos) -> Option<&mut T> {
-        self.rows.get_mut(pos.y)?.get_mut(pos.x)
+        self.items.get_mut(pos)
+    }
+
+    pub const fn rows(&self) -> RowsIter<T> {
+        RowsIter::new(self)
+    }
+
+    pub const fn row_iter(&self, row: u32) -> RowIter<T> {
+        RowIter::new(self, row)
+    }
+
+    pub const fn columns(&self) -> ColumnsIter<T> {
+        ColumnsIter::new(self)
+    }
+
+    pub const fn column_iter(&self, col: u32) -> ColumnIter<T> {
+        ColumnIter::new(self, col)
+    }
+
+    pub fn all_pos(&self) -> impl Iterator<Item = &Pos> {
+        self.items.keys()
+    }
+
+    pub fn all_pos_ordered(&self) -> impl Iterator<Item = &Pos> {
+        let mut pos: Vec<_> = self.all_pos().collect();
+        pos.sort_by(|pos, next| match pos.y.cmp(&next.y) {
+            Ordering::Equal => pos.x.cmp(&next.x),
+            result => result,
+        });
+        pos.into_iter()
+    }
+
+    pub const fn all_pos_iter(&self) -> AllPosIter<T> {
+        AllPosIter(self, None)
     }
 }
 
@@ -52,32 +121,6 @@ impl<T: Clone + FromStr> Map<T> {
         *self.get_mut(pos1).unwrap() = val2;
 
         *self.get_mut(pos2).unwrap() = val1;
-    }
-
-    pub const fn columns(&self) -> ColumnsIter<T> {
-        ColumnsIter(self, 0)
-    }
-
-    pub const fn column_iter(&self, col: usize) -> ColumnIter<T> {
-        ColumnIter(self, Pos { x: col, y: 0 })
-    }
-
-    pub fn all_pos(&self) -> Vec<Pos> {
-        let mut all_pos = Vec::with_capacity(
-            self.rows.len() * self.rows.first().map(|row| row.len()).unwrap_or(0),
-        );
-
-        for row in self.rows.iter().enumerate() {
-            for col in 0..row.1.len() {
-                all_pos.push(Pos { x: col, y: row.0 })
-            }
-        }
-
-        all_pos
-    }
-
-    pub const fn all_pos_iter(&self) -> AllPosIter<T> {
-        AllPosIter(self, None)
     }
 }
 
@@ -102,45 +145,14 @@ impl<'a, T: FromStr> Iterator for AllPosIter<'a, T> {
             None => self.1 = Some(Pos::default()),
         };
 
-        self.1.clone()
-    }
-}
-
-pub struct ColumnIter<'a, T: FromStr>(&'a Map<T>, Pos);
-pub struct ColumnsIter<'a, T: FromStr>(&'a Map<T>, usize);
-
-impl<'a, T: Copy + FromStr> Iterator for ColumnIter<'a, T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let current = self.0.get(&self.1)?;
-
-        self.1 = self.1.clone().try_add_consuming(Offset::y(1))?;
-
-        Some(*current)
-    }
-}
-
-impl<'a, T: Copy + FromStr> Iterator for ColumnsIter<'a, T> {
-    type Item = ColumnIter<'a, T>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.1 >= self.0.rows.first()?.len() {
-            return None;
-        }
-
-        self.1 += 1;
-
-        Some(self.0.column_iter(self.1 - 1))
+        self.1
     }
 }
 
 impl<T: Default + Clone + FromStr> Map<T> {
-    pub fn with_size(x: usize, y: usize) -> Self {
-        let row = (0..x).map(|_| T::default()).collect::<Vec<_>>();
-        Self {
-            rows: (0..y).map(|_| row.clone()).collect(),
-        }
+    pub fn with_size(x: u32, y: u32) -> Self {
+        let row = (0..x).map(|_| T::default());
+        Self::new((0..y).map(|_| row.clone()))
     }
 }
 
@@ -157,29 +169,34 @@ where
 
 impl<T: FromStr> From<&str> for Map<T> {
     fn from(value: &str) -> Self {
-        Self {
-            rows: value
-                .lines()
-                .map(|line| {
-                    line.split_whitespace()
-                        .map(|field| T::from_str(field).ok().expect("should parse field"))
-                        .collect::<Vec<_>>()
-                })
-                .collect(),
-        }
+        Self::new(value.lines().map(|line| {
+            line.split_whitespace()
+                .map(|field| T::from_str(field).ok().expect("should parse field"))
+        }))
     }
 }
 
 #[cfg(test)]
 pub(super) fn get_test_map() -> Map<char> {
     Map::<char> {
-        rows: vec![
-            vec!['1', '2', '3'],
-            vec!['4', '5', '6'],
-            vec!['7', '8', '9'],
-            vec!['a', 'b', 'c'],
-            vec!['d', 'e', 'f'],
-        ],
+        rect: URect::from_corners(UVec2::ZERO, UVec2::new(2, 4)),
+        items: HashMap::from_iter([
+            (Pos::new(0, 0), '1'),
+            (Pos::new(1, 0), '2'),
+            (Pos::new(2, 0), '3'),
+            (Pos::new(0, 1), '4'),
+            (Pos::new(1, 1), '5'),
+            (Pos::new(2, 1), '6'),
+            (Pos::new(0, 2), '7'),
+            (Pos::new(1, 2), '8'),
+            (Pos::new(2, 2), '9'),
+            (Pos::new(0, 3), 'a'),
+            (Pos::new(1, 3), 'b'),
+            (Pos::new(2, 3), 'c'),
+            (Pos::new(0, 4), 'd'),
+            (Pos::new(1, 4), 'e'),
+            (Pos::new(2, 4), 'f'),
+        ]),
     }
 }
 
@@ -218,8 +235,11 @@ d e f
     }
 
     #[test]
-    fn get_all_pos() {
-        let map = get_test_map().all_pos();
+    fn get_all_pos_ordered() {
+        let map = get_test_map()
+            .all_pos_ordered()
+            .cloned()
+            .collect::<Vec<_>>();
 
         assert_eq!(
             map,
@@ -262,11 +282,11 @@ d e f
         let map = &get_test_map();
         let mut col_iter = map.column_iter(0);
 
-        assert_eq!(col_iter.next(), Some('1'));
-        assert_eq!(col_iter.next(), Some('4'));
-        assert_eq!(col_iter.next(), Some('7'));
-        assert_eq!(col_iter.next(), Some('a'));
-        assert_eq!(col_iter.next(), Some('d'));
+        assert_eq!(col_iter.next(), Some(&'1'));
+        assert_eq!(col_iter.next(), Some(&'4'));
+        assert_eq!(col_iter.next(), Some(&'7'));
+        assert_eq!(col_iter.next(), Some(&'a'));
+        assert_eq!(col_iter.next(), Some(&'d'));
         assert_eq!(col_iter.next(), None);
 
         col_iter = map.column_iter(99);

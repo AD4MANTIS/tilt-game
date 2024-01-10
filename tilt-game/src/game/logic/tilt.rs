@@ -4,7 +4,7 @@ use console::Term;
 
 use classes::{RockKind, RoundStats};
 use game_classes::MapData;
-use maps::prelude::*;
+use maps::{prelude::*, W};
 
 use crate::{
     game::{logic::print_map, setting},
@@ -45,9 +45,8 @@ pub(super) fn tilt(
         for rock in moving_rocks.iter_mut() {
             let current_rock = rock;
 
-            let Some(next_pos) = current_rock
-                .pos
-                .try_add(&current_rock.direction.to_offset())
+            let Some(next_pos) =
+                W(current_rock.pos as &Pos).try_add(&current_rock.direction.to_offset())
             else {
                 continue;
             };
@@ -59,7 +58,7 @@ pub(super) fn tilt(
             map_data.map.swap(current_rock.pos, &next_pos);
             moved_rocks += 1;
 
-            current_rock.pos.apply(&next_pos);
+            W(current_rock.pos as &mut _).apply(&next_pos);
         }
 
         if moved_rocks == 0 {
@@ -73,14 +72,12 @@ pub(super) fn tilt(
     Ok(())
 }
 
-pub(super) fn get_all_round_rocks(map: &Map) -> Vec<Pos> {
+pub(super) fn get_all_round_rocks(map: &Map) -> impl Iterator<Item = &Pos> {
     map.all_pos()
-        .into_iter()
         .filter(|pos| map.get(pos).map(|tile| tile.rock) == Some(RockKind::RoundRock))
-        .collect()
 }
 
-fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn(&Pos) -> usize> {
+fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn(&Pos) -> u32> {
     let width = map.width();
     let height = map.height();
 
@@ -116,7 +113,7 @@ mod test {
             ▨ . . . . ▨ ▨ ▨ . .
             ▨ ○ ○ . . ▨ . . . .",
         );
-        let mut rock_pos = get_all_round_rocks(&map);
+        let mut rock_pos = get_all_round_rocks(&map).cloned().collect::<Vec<_>>();
 
         let mut map_data = MapData {
             map,

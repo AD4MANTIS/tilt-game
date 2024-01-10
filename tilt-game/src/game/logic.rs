@@ -32,7 +32,9 @@ pub(super) fn play_level(
     map_data: &mut MapData,
     stats: &mut RoundStats,
 ) -> Result<Action> {
-    let mut rock_pos = tilt::get_all_round_rocks(&map_data.map);
+    let mut rock_pos = tilt::get_all_round_rocks(&map_data.map)
+        .cloned()
+        .collect::<Vec<_>>();
 
     loop {
         let input = term.read_key()?;

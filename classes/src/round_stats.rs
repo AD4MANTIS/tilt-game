@@ -1,4 +1,4 @@
 #[derive(Default)]
 pub struct RoundStats {
-    pub moves: usize,
+    pub moves: u32,
 }

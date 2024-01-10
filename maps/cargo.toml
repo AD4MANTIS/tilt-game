@@ -9,3 +9,4 @@ classes = { workspace = true }
 
 serde = { workspace = true }
 thiserror = { workspace = true }
+bevy_math = { workspace = true }

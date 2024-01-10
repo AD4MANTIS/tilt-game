@@ -11,3 +11,5 @@ pub use self::{
     round_stats::RoundStats,
     tile::Tile,
 };
+
+pub struct W<T>(pub T);

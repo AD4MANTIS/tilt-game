@@ -107,7 +107,7 @@ MapData(
             max_moves: None
         ),
         rocks: Pos([
-            (x: 3, y: 0),
+            (3, 0),
         ])
     )
 )

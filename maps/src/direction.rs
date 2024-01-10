@@ -11,10 +11,10 @@ pub enum Direction {
 impl Direction {
     pub const fn to_offset(self) -> Offset {
         match self {
-            Self::Top => Offset::y(-1),
-            Self::Left => Offset::x(-1),
-            Self::Right => Offset::x(1),
-            Self::Bottom => Offset::y(1),
+            Self::Top => Offset::NEG_Y,
+            Self::Left => Offset::NEG_X,
+            Self::Right => Offset::X,
+            Self::Bottom => Offset::Y,
         }
     }
 }

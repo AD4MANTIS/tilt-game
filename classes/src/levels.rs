@@ -34,6 +34,6 @@ Level!(1, 2, 5, 6, 10, 60, 99);
 
 impl Level {
     pub fn get_next_level(self) -> Self {
-        FromPrimitive::from_usize(self as usize + 1).unwrap_or(self)
+        FromPrimitive::from_u32(self as u32 + 1).unwrap_or(self)
     }
 }

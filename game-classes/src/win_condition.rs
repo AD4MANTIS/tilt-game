@@ -15,5 +15,5 @@ pub enum RockWinConditions {
 
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct GeneralWinConditions {
-    pub max_moves: Option<usize>,
+    pub max_moves: Option<u32>,
 }
