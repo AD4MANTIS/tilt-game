@@ -1,0 +1,17 @@
+[tasks.run]
+command = "cargo"
+args = ["run"]
+workspace = false
+cwd = "tilt-game"
+
+[tasks.build]
+command = "cargo"
+args = ["build"]
+workspace = false
+cwd = "tilt-game"
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+workspace = false
+cwd = "tilt-game"
