@@ -1,8 +1,11 @@
 [package]
 name = "game-classes"
-edition = "2021"
-version.workspace = true
 authors.workspace = true
+version.workspace = true
+edition.workspace = true
+
+[lints]
+workspace = true
 
 [dependencies]
 maps = { workspace = true }
@@ -10,3 +13,4 @@ classes = { workspace = true }
 
 console = { workspace = true }
 serde = { workspace = true }
+

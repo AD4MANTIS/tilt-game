@@ -10,6 +10,12 @@ args = ["build"]
 workspace = false
 cwd = "tilt-game"
 
+[tasks.clippy]
+command = "cargo"
+args = ["clippy"]
+workspace = false
+cwd = "my-app"
+
 [tasks.test]
 command = "cargo"
 args = ["test"]

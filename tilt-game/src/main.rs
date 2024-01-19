@@ -1,5 +1,8 @@
-use tilt_game::{run, Result};
+use color_eyre::eyre::Result;
+use tilt_game::run;
 
 fn main() -> Result<()> {
-    run()
+    color_eyre::install()?;
+
+    Ok(run()?)
 }

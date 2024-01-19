@@ -3,7 +3,18 @@ resolver = "2"
 
 package.authors = ["AD4MANTIS"]
 package.version = "0.1.2"
+package.edition = "2021"
+
 members = ["tilt-game", "classes", "maps", "game-classes"]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+enum_glob_use = "forbid"
+pedantic = "deny"
+nursery = "deny"
+unwrap_used = "deny"
 
 [workspace.dependencies]
 classes = { path = "classes/" }
@@ -19,4 +30,5 @@ paste = "1.0.14"
 serde = { version = "1.0.193", features = ["derive"] }
 strum = { version = "0.25.0", features = ["derive"] }
 thiserror = "1.0.51"
+color-eyre = { version = "0.6.2", default-features = false }
 bevy_math = { version = "0.12.1", features = ["serialize"] }
