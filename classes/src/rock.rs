@@ -14,6 +14,7 @@ impl Display for Rock {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, strum::EnumString, strum::Display)]
+#[allow(clippy::module_name_repetitions)]
 pub enum RockKind {
     #[strum(to_string = ".")]
     Empty,

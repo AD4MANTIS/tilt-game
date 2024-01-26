@@ -3,6 +3,7 @@ use crate::W;
 use super::prelude::{Map, Offset, Pos};
 
 impl W<&Pos> {
+    #[must_use]
     pub fn try_add(&self, rhs: &Offset) -> Option<Pos> {
         Some(Pos {
             x: self.0.x.checked_add_signed(rhs.x)?,
@@ -10,6 +11,7 @@ impl W<&Pos> {
         })
     }
 
+    #[must_use]
     pub fn try_add_in_map(&self, map: &Map, rhs: &Offset) -> Option<Pos> {
         let pos = self.try_add(rhs)?;
 

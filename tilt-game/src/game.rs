@@ -1,4 +1,3 @@
-pub mod init;
 mod logic;
 pub mod main_loop;
 mod settings;

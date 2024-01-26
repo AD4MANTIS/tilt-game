@@ -2,24 +2,29 @@ use std::time::Duration;
 
 use config::{Config, File};
 use directories::ProjectDirs;
-use once_cell::sync::OnceCell;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-
-use super::init::InitError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Settings {
     move_delay_ms: Option<u64>,
 }
 
-// const DEFAULT_SETTINGS: Settings = Settings {
-//     move_delay_ms: None,
-// };
+impl Default for Settings {
+    #[cfg(not(test))]
+    fn default() -> Self {
+        Self {
+            move_delay_ms: None,
+        }
+    }
 
-#[cfg(test)]
-pub const DEFAULT_TEST_SETTINGS: Settings = Settings {
-    move_delay_ms: Some(0),
-};
+    #[cfg(test)]
+    fn default() -> Self {
+        Self {
+            move_delay_ms: Some(0),
+        }
+    }
+}
 
 impl Settings {
     pub fn move_delay(&self) -> Option<Duration> {
@@ -27,16 +32,13 @@ impl Settings {
     }
 }
 
-pub(super) static SETTINGS: OnceCell<Settings> = OnceCell::new();
+pub(super) static PROJECT_DIR: Lazy<Option<ProjectDirs>> =
+    Lazy::new(|| ProjectDirs::from("", "", "tilt-game"));
 
-pub fn setting() -> &'static Settings {
-    SETTINGS.get().unwrap()
-}
-
-pub(super) fn init() -> Result<(), InitError> {
+pub(super) static SETTINGS: Lazy<Settings> = Lazy::new(|| {
     let mut builder = Config::builder();
 
-    if let Some(project_dir) = ProjectDirs::from("", "", "tilt-game") {
+    if let Some(ref project_dir) = *PROJECT_DIR {
         let mut config_file = project_dir.config_dir().to_path_buf();
         config_file.push("settings.toml");
         if let Some(config_file) = config_file.to_str() {
@@ -44,18 +46,13 @@ pub(super) fn init() -> Result<(), InitError> {
         }
     }
 
-    let settings = builder
+    builder
         .add_source(config::Environment::with_prefix("TiltGame"))
-        .build()?;
+        .build()
+        .and_then(config::Config::try_deserialize)
+        .unwrap_or_default()
+});
 
-    SETTINGS
-        .set(settings.try_deserialize::<Settings>()?)
-        .map_err(|_| InitError::AlreadyInit)
-}
-
-#[cfg(test)]
-pub fn init_test(setting: Option<Settings>) {
-    SETTINGS
-        .set(setting.unwrap_or(DEFAULT_TEST_SETTINGS))
-        .unwrap();
+pub fn setting() -> &'static Settings {
+    &SETTINGS
 }

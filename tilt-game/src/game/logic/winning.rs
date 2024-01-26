@@ -3,15 +3,15 @@ use game_classes::{MapData, RockWinConditions};
 
 pub(super) fn check_result(map_data: &MapData, stats: &RoundStats) -> Option<RoundResult> {
     match &map_data.win.rocks {
-        RockWinConditions::Pos(pos) => match pos.iter().all(|pos| {
-            map_data.map.get(pos)
-                == Some(&Tile {
-                    rock: RockKind::RoundRock,
-                })
-        }) {
-            true => Some(RoundResult::Won),
-            false => None,
-        },
+        RockWinConditions::Pos(pos) => pos
+            .iter()
+            .all(|pos| {
+                map_data.map.get(pos)
+                    == Some(&Tile {
+                        rock: RockKind::RoundRock,
+                    })
+            })
+            .then_some(RoundResult::Won),
         RockWinConditions::Exit(_) => todo!(),
     }
     .or_else(|| {

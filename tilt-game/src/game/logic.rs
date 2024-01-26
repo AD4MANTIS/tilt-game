@@ -10,7 +10,7 @@ mod tilt;
 mod winning;
 
 pub fn print_map(term: &Term, map_data: &MapData, stats: &RoundStats) -> Result<()> {
-    let display_map = format!("{:#?}", map_data);
+    let display_map = format!("{map_data:#?}");
     let mut display_infos = String::new();
 
     if let Some(max_moves) = map_data.win.general.max_moves {
@@ -33,7 +33,7 @@ pub(super) fn play_level(
     stats: &mut RoundStats,
 ) -> Result<Action> {
     let mut rock_pos = tilt::get_all_round_rocks(&map_data.map)
-        .cloned()
+        .copied()
         .collect::<Vec<_>>();
 
     loop {

@@ -9,6 +9,7 @@ pub enum Direction {
 }
 
 impl Direction {
+    #[must_use]
     pub const fn to_offset(self) -> Offset {
         match self {
             Self::Top => Offset::NEG_Y,

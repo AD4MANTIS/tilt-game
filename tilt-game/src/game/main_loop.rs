@@ -5,16 +5,19 @@ use console::{style, Key, Term};
 use classes::{Level, RoundResult, RoundStats};
 use game_classes::MapData;
 
-use super::{init::init, logic::print_map};
+use super::logic::print_map;
 use crate::{assets::load_map_data, cli::Action, Error, Result};
 
+/// Starts the Game in the current Terminal
+///
+/// # Errors
+///
+/// This function will return an error if the Game encounters an unrecoverable Error and exits gracefully.
 pub fn run() -> Result<()> {
     let term = Term::stdout();
     let term_err = Term::stderr();
 
     term.hide_cursor()?;
-
-    init()?;
 
     let result = run_main_loop(&term, &term_err);
 
@@ -34,7 +37,7 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
 
         let action = match result {
             Err(err) => {
-                term_err.write_line(&format!("{}", err))?;
+                term_err.write_line(&format!("{err}"))?;
                 continue;
             }
             Ok(action) => action,

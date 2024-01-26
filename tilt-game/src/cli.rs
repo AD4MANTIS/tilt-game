@@ -63,7 +63,7 @@ pub fn parse_cmd(term: &Term) -> Result<Option<Action>> {
     let cli = match Cli::try_parse_from(std::iter::once("").chain(cmd.split(' '))) {
         Ok(cli) => cli,
         Err(err) => {
-            term.write_line(&format!("{}", err))?;
+            term.write_line(&format!("{err}"))?;
             return Ok(None);
         }
     };

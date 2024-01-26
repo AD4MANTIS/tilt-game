@@ -1,6 +1,6 @@
 use std::{fmt::Debug, str::FromStr};
 
-use classes::Tile;
+use classes::{EnumerateU32, Tile};
 use console::{style, Style};
 use serde::{Deserialize, Deserializer};
 
@@ -30,24 +30,21 @@ impl Debug for MapData {
         // let win_tile_style = Style::new().color256(160); // Red3 #d70000 rgb(215,0,0)
         let win_tile_style = Style::new().color256(34); // Green3 #00af00 rgb(0,175,0)
 
-        for (row_index, row) in self.map.rows().enumerate() {
+        for (row_index, row) in self.map.rows().enumerate_u32() {
             if f.alternate() {
                 f.write_str(
                     &(row
                         .map(ToString::to_string)
-                        .enumerate()
+                        .enumerate_u32()
                         .map(|(x, tile)| match &self.win.rocks {
                             RockWinConditions::Pos(pos) => {
-                                if pos.contains(&Pos {
-                                    x: x as u32,
-                                    y: row_index as u32,
-                                }) {
+                                if pos.contains(&Pos { x, y: row_index }) {
                                     win_tile_style.apply_to(tile)
                                 } else {
                                     style(tile)
                                 }
                             }
-                            _ => todo!(),
+                            RockWinConditions::Exit(_) => todo!(),
                         })
                         .map(|x| x.to_string())
                         .collect::<Vec<_>>()

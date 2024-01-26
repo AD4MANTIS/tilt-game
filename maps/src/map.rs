@@ -27,22 +27,30 @@ pub struct Map<T: FromStr = Tile> {
 impl<T: FromStr> Index<&Pos> for Map<T> {
     type Output = T;
 
-    #[inline(always)]
+    #[inline]
     fn index(&self, pos: &Pos) -> &Self::Output {
         &self.items[pos]
     }
 }
 
 impl<T: FromStr> Map<T> {
+    /// # Panics
+    ///
+    /// Panics if the map is too big.
     pub fn new(items: impl IntoIterator<Item = impl IntoIterator<Item = T>>) -> Self {
         let items: HashMap<_, _> = items
             .into_iter()
             .enumerate()
             .flat_map(|row| {
-                row.1
-                    .into_iter()
-                    .enumerate()
-                    .map(move |(x, item)| (UVec2::new(x as u32, row.0 as u32), item))
+                row.1.into_iter().enumerate().map(move |(x, item)| {
+                    (
+                        UVec2::new(
+                            u32::try_from(x).expect("Map is too big"),
+                            u32::try_from(row.0).expect("Map is too big"),
+                        ),
+                        item,
+                    )
+                })
             })
             .collect();
 
@@ -58,14 +66,17 @@ impl<T: FromStr> Map<T> {
         }
     }
 
+    #[must_use]
     pub const fn width(&self) -> u32 {
         self.rect.width() + 1
     }
 
+    #[must_use]
     pub const fn height(&self) -> u32 {
         self.rect.height() + 1
     }
 
+    #[must_use]
     pub fn get(&self, pos: &Pos) -> Option<&T> {
         self.items.get(pos)
     }
@@ -74,18 +85,22 @@ impl<T: FromStr> Map<T> {
         self.items.get_mut(pos)
     }
 
+    #[must_use]
     pub const fn rows(&self) -> RowsIter<T> {
         RowsIter::new(self)
     }
 
+    #[must_use]
     pub const fn row_iter(&self, row: u32) -> RowIter<T> {
         RowIter::new(self, row)
     }
 
+    #[must_use]
     pub const fn columns(&self) -> ColumnsIter<T> {
         ColumnsIter::new(self)
     }
 
+    #[must_use]
     pub const fn column_iter(&self, col: u32) -> ColumnIter<T> {
         ColumnIter::new(self, col)
     }
@@ -103,12 +118,14 @@ impl<T: FromStr> Map<T> {
         pos.into_iter()
     }
 
+    #[must_use]
     pub const fn all_pos_iter(&self) -> AllPosIter<T> {
         AllPosIter(self, None)
     }
 }
 
 impl<T: Clone + FromStr> Map<T> {
+    #[allow(clippy::missing_panics_doc)]
     pub fn swap(&mut self, pos1: &Pos, pos2: &Pos) {
         let Some(val1) = self.get(pos1).cloned() else {
             return;
@@ -118,9 +135,13 @@ impl<T: Clone + FromStr> Map<T> {
             return;
         };
 
-        *self.get_mut(pos1).unwrap() = val2;
+        *self
+            .get_mut(pos1)
+            .expect("pos1 exitists because of the `get` above") = val2;
 
-        *self.get_mut(pos2).unwrap() = val1;
+        *self
+            .get_mut(pos2)
+            .expect("pos1 exitists because of the `get` above") = val1;
     }
 }
 
@@ -150,6 +171,7 @@ impl<'a, T: FromStr> Iterator for AllPosIter<'a, T> {
 }
 
 impl<T: Default + Clone + FromStr> Map<T> {
+    #[must_use]
     pub fn with_size(x: u32, y: u32) -> Self {
         let row = (0..x).map(|_| T::default());
         Self::new((0..y).map(|_| row.clone()))
@@ -177,7 +199,8 @@ impl<T: FromStr> From<&str> for Map<T> {
 }
 
 #[cfg(test)]
-pub(super) fn get_test_map() -> Map<char> {
+#[allow(clippy::module_name_repetitions)]
+pub fn get_test_map() -> Map<char> {
     Map::<char> {
         rect: URect::from_corners(UVec2::ZERO, UVec2::new(2, 4)),
         items: HashMap::from_iter([
@@ -238,7 +261,7 @@ d e f
     fn get_all_pos_ordered() {
         let map = get_test_map()
             .all_pos_ordered()
-            .cloned()
+            .copied()
             .collect::<Vec<_>>();
 
         assert_eq!(

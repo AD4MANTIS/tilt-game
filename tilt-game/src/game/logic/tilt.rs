@@ -42,7 +42,7 @@ pub(super) fn tilt(
     loop {
         let mut moved_rocks = 0;
 
-        for rock in moving_rocks.iter_mut() {
+        for rock in &mut moving_rocks {
             let current_rock = rock;
 
             let Some(next_pos) =
@@ -93,14 +93,10 @@ fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn
 mod test {
     use game_classes::{GeneralWinConditions, RockWinConditions, WinCondition};
 
-    use crate::game::init::init_test;
-
     use super::*;
 
     #[test]
     fn spin() {
-        init_test();
-
         let map = Map::from(
             r"○ . . . . ▨ . . . .
             ○ . ○ ○ ▨ . . . . ▨

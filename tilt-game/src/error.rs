@@ -1,12 +1,9 @@
 use std::io;
 
-use crate::{cli::CmdError, game::init::InitError};
+use crate::cli::CmdError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to initialize")]
-    InitError(#[from] InitError),
-
     #[error("Level {0} not found")]
     LevelNotFound(String),
 

@@ -7,7 +7,7 @@ const LEVELS: Dir = include_dir!("assets/levels");
 macro_rules! Level {
     ($($name: literal),* $({ $rest: tt })?) => {
         paste::paste! {
-            #[derive(Clone, Copy, strum::EnumString, strum::EnumCount, FromPrimitive)]
+            #[derive(Clone, Copy, Debug, strum::EnumString, strum::EnumCount, FromPrimitive)]
             pub enum Level {
                 $(
                     #[strum(serialize = "" $name "")]
@@ -18,6 +18,7 @@ macro_rules! Level {
             }
 
             impl Level {
+                #[must_use]
                 pub fn get_data(self) -> &'static str {
                     match self {
                         $(
@@ -33,6 +34,7 @@ macro_rules! Level {
 Level!(1, 2, 5, 6, 10, 60, 99);
 
 impl Level {
+    #[must_use]
     pub fn get_next_level(self) -> Self {
         FromPrimitive::from_u32(self as u32 + 1).unwrap_or(self)
     }
