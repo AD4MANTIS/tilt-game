@@ -109,7 +109,7 @@ mod test {
             ▨ . . . . ▨ ▨ ▨ . .
             ▨ ○ ○ . . ▨ . . . .",
         );
-        let mut rock_pos = get_all_round_rocks(&map).cloned().collect::<Vec<_>>();
+        let mut rock_pos = get_all_round_rocks(&map).copied().collect::<Vec<_>>();
 
         let mut map_data = MapData {
             map,
@@ -131,9 +131,9 @@ mod test {
                     direction,
                     &mut map_data,
                     &mut rock_pos,
-                    &Default::default(),
+                    &RoundStats::default(),
                 )
-                .unwrap();
+                .expect("Tilting should not fail");
             }
         }
 
