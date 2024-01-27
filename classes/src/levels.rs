@@ -7,7 +7,7 @@ const LEVELS: Dir = include_dir!("assets/levels");
 macro_rules! Level {
     ($($name: literal),* $({ $rest: tt })?) => {
         paste::paste! {
-            #[derive(Clone, Copy, Debug, strum::EnumString, strum::EnumCount, FromPrimitive)]
+            #[derive(Clone, Copy, Debug, strum::EnumString, strum::EnumCount, FromPrimitive, serde::Serialize, serde::Deserialize)]
             pub enum Level {
                 $(
                     #[strum(serialize = "" $name "")]

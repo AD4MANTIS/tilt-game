@@ -5,7 +5,7 @@ use console::{style, Key, Term};
 use classes::{Level, RoundResult, RoundStats};
 use game_classes::MapData;
 
-use super::logic::print_map;
+use super::{logic::print_map, saving};
 use crate::{assets::load_map_data, cli::Action, Error, Result};
 
 /// Starts the Game in the current Terminal
@@ -27,7 +27,7 @@ pub fn run() -> Result<()> {
 }
 
 fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
-    let mut current_level = Level::Lv1;
+    let mut current_level = saving::get_save().map_or(Level::Lv1, |save| save.next_level);
     let mut stats = RoundStats::default();
     let mut map_data = load_level(current_level, term, &mut stats)?;
 
@@ -56,13 +56,18 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
             Action::Result(RoundResult::Won) => {
                 term.write_line(&style("Level won!").on_green().to_string())?;
 
+                let next_level = current_level.get_next_level();
+
+                let mut save = saving::get_save().unwrap_or_default();
+                save.next_level = next_level;
+                saving::save(&save);
+
                 thread::sleep(Duration::from_secs(1));
 
                 term.write_str(r#"Continuing to next level... (press "r" to restart)"#)?;
                 if term.read_key()? == Key::Char('r') {
                     map_data = reload_level(current_level, term, &mut stats)?;
                 } else {
-                    let next_level = current_level.get_next_level();
                     map_data = load_level(next_level, term, &mut stats)?;
                     current_level = next_level;
                 }

@@ -38,7 +38,7 @@ pub(super) static PROJECT_DIR: Lazy<Option<ProjectDirs>> =
 pub(super) static SETTINGS: Lazy<Settings> = Lazy::new(|| {
     let mut builder = Config::builder();
 
-    if let Some(ref project_dir) = *PROJECT_DIR {
+    if let Some(project_dir) = PROJECT_DIR.as_ref() {
         let mut config_file = project_dir.config_dir().to_path_buf();
         config_file.push("settings.toml");
         if let Some(config_file) = config_file.to_str() {
