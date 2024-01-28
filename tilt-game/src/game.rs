@@ -1,6 +1,5 @@
+mod data;
 mod logic;
 pub mod main_loop;
-mod saving;
-mod settings;
 
-pub use settings::setting;
+pub use data::settings::setting;

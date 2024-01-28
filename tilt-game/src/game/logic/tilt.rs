@@ -13,14 +13,14 @@ use crate::{
 
 pub(super) fn tilt(
     term: &Term,
-    rotate_towards: Direction,
+    rotate_towards: Horizontal,
     map_data: &mut MapData,
     rock_pos: &mut [Pos],
     stats: &RoundStats,
 ) -> Result<()> {
     struct MovingRock<'a> {
         pos: &'a mut Pos,
-        direction: Direction,
+        direction: Horizontal,
     }
 
     let mut moving_rocks = rock_pos
@@ -58,7 +58,16 @@ pub(super) fn tilt(
             match rock {
                 RockKind::Empty => {}
                 RockKind::RoundRock | RockKind::SquareRock => continue,
-                RockKind::SingleReflect(_) => todo!(),
+                RockKind::SingleReflect(diagonal) => {
+                    let mut reflect_directions = diagonal.horizontals().to_vec();
+
+                    reflect_directions.retain(|reflect_dir| *reflect_dir != current_rock.direction);
+                    todo!();
+                    match reflect_directions.len() {
+                        1 => current_rock.direction = reflect_directions[0],
+                        _ => continue,
+                    };
+                }
             };
 
             map_data.map.swap(current_rock.pos, &next_pos);
@@ -83,15 +92,15 @@ pub(super) fn get_all_round_rocks(map: &Map) -> impl Iterator<Item = &Pos> {
         .filter(|pos| map.get(pos).map(|tile| tile.rock) == Some(RockKind::RoundRock))
 }
 
-fn sort_rock_for_rotation_fn(rotate_towards: Direction, map: &Map) -> Box<dyn Fn(&Pos) -> u32> {
+fn sort_rock_for_rotation_fn(rotate_towards: Horizontal, map: &Map) -> Box<dyn Fn(&Pos) -> u32> {
     let width = map.width();
     let height = map.height();
 
     match rotate_towards {
-        Direction::Top => Box::new(move |pos| pos.y * width + pos.x),
-        Direction::Left => Box::new(move |pos| pos.x * height + pos.y),
-        Direction::Right => Box::new(move |pos| (width - pos.x) * height + pos.y),
-        Direction::Bottom => Box::new(move |pos| (width - pos.y) * width + pos.x),
+        Horizontal::Top => Box::new(move |pos| pos.y * width + pos.x),
+        Horizontal::Left => Box::new(move |pos| pos.x * height + pos.y),
+        Horizontal::Right => Box::new(move |pos| (width - pos.x) * height + pos.y),
+        Horizontal::Bottom => Box::new(move |pos| (width - pos.y) * width + pos.x),
     }
 }
 
@@ -127,10 +136,10 @@ mod test {
 
         for _ in 0..3 {
             for direction in [
-                Direction::Top,
-                Direction::Left,
-                Direction::Bottom,
-                Direction::Right,
+                Horizontal::Top,
+                Horizontal::Left,
+                Horizontal::Bottom,
+                Horizontal::Right,
             ] {
                 tilt(
                     &Term::buffered_stdout(),

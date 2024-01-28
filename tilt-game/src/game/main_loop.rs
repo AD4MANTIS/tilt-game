@@ -5,7 +5,7 @@ use console::{style, Key, Term};
 use classes::{Level, RoundResult, RoundStats};
 use game_classes::MapData;
 
-use super::{logic::print_map, saving};
+use super::{data::saving, logic::print_map};
 use crate::{assets::load_map_data, cli::Action, Error, Result};
 
 /// Starts the Game in the current Terminal

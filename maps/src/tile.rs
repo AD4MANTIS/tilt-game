@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use serde::Deserialize;
 
-use crate::prelude::{Rock, RockKind};
+use crate::prelude::RockKind;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Tile {

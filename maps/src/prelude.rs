@@ -1,5 +1,5 @@
 pub use super::{
-    direction::Direction,
+    direction::{Diagonal, Horizontal},
     map::Map,
     rock::{Rock, RockKind},
     tile::Tile,

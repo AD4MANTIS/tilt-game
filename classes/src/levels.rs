@@ -31,7 +31,7 @@ macro_rules! Level {
     };
 }
 
-Level!(1, 2, 5, 6, 10, 60, 99);
+Level!(1, 2, 3, 5, 6, 10, 60, 99);
 
 impl Level {
     #[must_use]

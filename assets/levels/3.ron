@@ -1,15 +1,16 @@
 MapData(
     map: 
         r"
-        ○ . ▨
-        ◥ ◤ ◢ ◣
+        ○ . .
+        . . ◥
+        . . .
         ",
     win: WinCondition(
         general: (
             max_moves: None
         ),
         rocks: Pos([
-            (0, 0),
+            (1, 1),
         ])
     )
 )

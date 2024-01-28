@@ -5,7 +5,7 @@ use std::{
 
 use serde::Deserialize;
 
-use crate::prelude::Direction;
+use crate::prelude::Diagonal;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rock {
@@ -27,14 +27,23 @@ pub enum RockKind {
 
     SquareRock,
 
-    SingleReflect(Direction),
+    SingleReflect(Diagonal),
 }
 
 impl FromStr for RockKind {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        Ok(match s {
+            "." => Self::Empty,
+            "○" => Self::RoundRock,
+            "▨" => Self::SquareRock,
+            "◢" => Self::SingleReflect(Diagonal::TopLeft),
+            "◣" => Self::SingleReflect(Diagonal::TopRight),
+            "◥" => Self::SingleReflect(Diagonal::BottomLeft),
+            "◤" => Self::SingleReflect(Diagonal::BottomRight),
+            _ => return Err(()),
+        })
     }
 }
 
@@ -44,7 +53,12 @@ impl Display for RockKind {
             Self::Empty => f.write_char('.'),
             Self::RoundRock => f.write_char('○'),
             Self::SquareRock => f.write_char('▨'),
-            Self::SingleReflect(_) => todo!(),
+            Self::SingleReflect(direction) => f.write_str(match direction {
+                Diagonal::TopLeft => "◢",
+                Diagonal::TopRight => "◣",
+                Diagonal::BottomLeft => "◥",
+                Diagonal::BottomRight => "◤",
+            }),
         }
     }
 }

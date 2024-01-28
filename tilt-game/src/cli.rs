@@ -18,10 +18,10 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Shows the about information
+    /// Shows the about Information
     About {},
 
-    /// Load a level with the given number
+    /// Load a level with the given Name
     Level { level: String },
 
     /**

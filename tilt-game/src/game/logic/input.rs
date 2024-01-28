@@ -18,20 +18,20 @@ pub(super) fn handle_input(
     stats: &mut RoundStats,
     rock_pos: &mut [Pos],
 ) -> Result<Option<Action>> {
-    let mut rotate_towards = None::<Direction>;
+    let mut rotate_towards = None::<Horizontal>;
 
     match input {
         Key::Char('w') | Key::ArrowUp => {
-            rotate_towards = Some(Direction::Top);
+            rotate_towards = Some(Horizontal::Top);
         }
         Key::Char('a') | Key::ArrowLeft => {
-            rotate_towards = Some(Direction::Left);
+            rotate_towards = Some(Horizontal::Left);
         }
         Key::Char('s') | Key::ArrowDown => {
-            rotate_towards = Some(Direction::Bottom);
+            rotate_towards = Some(Horizontal::Bottom);
         }
         Key::Char('d') | Key::ArrowRight => {
-            rotate_towards = Some(Direction::Right);
+            rotate_towards = Some(Horizontal::Right);
         }
         Key::Char('?' | 'h') => {
             write_help_text(term)?;
