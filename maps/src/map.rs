@@ -8,14 +8,12 @@ use std::{
 use bevy_math::{URect, UVec2};
 use serde::Deserialize;
 
-use classes::Tile;
+use crate::prelude::{Pos, Tile};
 
 use self::{
     column_iter::{ColumnIter, ColumnsIter},
     row_iter::{RowIter, RowsIter},
 };
-
-use super::prelude::Pos;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(from = "&str")]

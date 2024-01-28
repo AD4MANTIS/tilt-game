@@ -1,5 +1,6 @@
-use classes::{LostReason, RockKind, RoundResult, RoundStats, Tile};
+use classes::{LostReason, RoundResult, RoundStats};
 use game_classes::{MapData, RockWinConditions};
+use maps::prelude::*;
 
 pub(super) fn check_result(map_data: &MapData, stats: &RoundStats) -> Option<RoundResult> {
     match &map_data.win.rocks {

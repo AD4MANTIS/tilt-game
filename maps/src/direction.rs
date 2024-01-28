@@ -1,6 +1,6 @@
-use super::prelude::Offset;
+use crate::prelude::Offset;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Deserialize)]
 pub enum Direction {
     Top,
     Left,

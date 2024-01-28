@@ -3,7 +3,8 @@ use std::io;
 use clap::{Parser, Subcommand};
 use console::{style, Term};
 
-use classes::{RockKind, RoundResult};
+use classes::RoundResult;
+use maps::prelude::RockKind;
 
 use crate::game::setting;
 

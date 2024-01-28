@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use serde::Deserialize;
 
-use super::RockKind;
+use crate::prelude::{Rock, RockKind};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Tile {
@@ -12,7 +12,7 @@ pub struct Tile {
 impl FromStr for Tile {
     type Err = <RockKind as FromStr>::Err;
 
-    fn from_str(s: &str) -> Result<Self, strum::ParseError> {
+    fn from_str(s: &str) -> Result<Self, <RockKind as FromStr>::Err> {
         <RockKind as FromStr>::from_str(s).map(Self::from)
     }
 }

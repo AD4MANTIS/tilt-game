@@ -1,10 +1,10 @@
 use std::{fmt::Debug, str::FromStr};
 
-use classes::{EnumerateU32, Tile};
+use classes::EnumerateU32;
 use console::{style, Style};
 use serde::{Deserialize, Deserializer};
 
-use maps::prelude::{Map, Pos};
+use maps::prelude::{Map, Pos, Tile};
 
 use crate::{RockWinConditions, WinCondition};
 

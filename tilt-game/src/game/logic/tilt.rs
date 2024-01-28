@@ -1,8 +1,8 @@
-use std::{thread::sleep, time::Duration};
+use std::{borrow::BorrowMut, thread::sleep, time::Duration};
 
 use console::Term;
 
-use classes::{RockKind, RoundStats};
+use classes::RoundStats;
 use game_classes::MapData;
 use maps::{prelude::*, W};
 
@@ -51,14 +51,20 @@ pub(super) fn tilt(
                 continue;
             };
 
-            if map_data.map.get(&next_pos).map(|tile| tile.rock) != Some(RockKind::Empty) {
+            let Some(rock) = map_data.map.get(&next_pos).map(|tile| tile.rock) else {
                 continue;
-            }
+            };
+
+            match rock {
+                RockKind::Empty => {}
+                RockKind::RoundRock | RockKind::SquareRock => continue,
+                RockKind::SingleReflect(_) => todo!(),
+            };
 
             map_data.map.swap(current_rock.pos, &next_pos);
             moved_rocks += 1;
 
-            W(current_rock.pos as &mut _).apply(&next_pos);
+            W(current_rock.pos.borrow_mut()).apply(&next_pos);
         }
 
         if moved_rocks == 0 {
