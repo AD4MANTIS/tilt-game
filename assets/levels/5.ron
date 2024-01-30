@@ -1,8 +1,8 @@
 MapData(
     map: 
         r"
-        ○ ▨ ▨ . ○
-        . . ▨ . .
+        o # # . o
+        . . # . .
         ",
     win: WinCondition(
         general: (

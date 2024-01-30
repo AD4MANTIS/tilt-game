@@ -1,7 +1,7 @@
 MapData(
     map: 
         r"
-        ○ . ▨
+        o . #
         ◥ ◤ ◢ ◣
         ",
     win: WinCondition(

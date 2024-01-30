@@ -22,27 +22,26 @@ impl Display for Rock {
 #[allow(clippy::module_name_repetitions)]
 pub enum RockKind {
     Empty,
-
+    // TODO: This should probably be removed from here
+    // because it is not part of the map itself
     RoundRock,
-
     SquareRock,
-
     SingleReflect(Diagonal),
 }
 
 impl FromStr for RockKind {
-    type Err = ();
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "." => Self::Empty,
-            "○" => Self::RoundRock,
-            "▨" => Self::SquareRock,
+            "o" => Self::RoundRock,
+            "#" => Self::SquareRock,
             "◢" => Self::SingleReflect(Diagonal::TopLeft),
             "◣" => Self::SingleReflect(Diagonal::TopRight),
             "◥" => Self::SingleReflect(Diagonal::BottomLeft),
             "◤" => Self::SingleReflect(Diagonal::BottomRight),
-            _ => return Err(()),
+            _ => return Err(format!("{s} is not a RockKind")),
         })
     }
 }
@@ -50,7 +49,7 @@ impl FromStr for RockKind {
 impl Display for RockKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Empty => f.write_char('.'),
+            Self::Empty => f.write_char('•'),
             Self::RoundRock => f.write_char('○'),
             Self::SquareRock => f.write_char('▨'),
             Self::SingleReflect(direction) => f.write_str(match direction {
