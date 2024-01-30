@@ -11,6 +11,11 @@ use crate::{
     Result,
 };
 
+struct MovingRock {
+    pub pos: Pos,
+    pub direction: Horizontal,
+}
+
 pub(super) fn tilt(
     term: &Term,
     rotate_towards: Horizontal,
@@ -18,11 +23,6 @@ pub(super) fn tilt(
     state: &mut MapState,
     round_stats: &RoundStats,
 ) -> Result<()> {
-    struct MovingRock {
-        pos: Pos,
-        direction: Horizontal,
-    }
-
     let mut moving_rocks = state
         .rock_positions
         .iter()
@@ -41,43 +41,13 @@ pub(super) fn tilt(
         .unwrap_or_else(|| Duration::from_millis(150));
 
     loop {
-        let mut moved_rocks = 0;
+        let mut any_rock_moved = false;
 
-        for rock in &mut moving_rocks {
-            let current_rock = rock;
-
-            let Some(next_pos) = W(&current_rock.pos).try_add(&current_rock.direction.to_offset())
-            else {
-                continue;
-            };
-
-            let Some(rock) = map_data.map.get(&next_pos).map(|tile| tile.rock) else {
-                continue;
-            };
-
-            match rock {
-                RockKind::Empty => {}
-                RockKind::RoundRock | RockKind::SquareRock => continue,
-                RockKind::SingleReflect(diagonal) => {
-                    let mut reflect_directions = diagonal.horizontals().to_vec();
-
-                    reflect_directions.retain(|reflect_dir| {
-                        reflect_dir.to_offset() != current_rock.direction.to_offset().neg()
-                    });
-
-                    match reflect_directions.len() {
-                        1 => current_rock.direction = reflect_directions[0],
-                        _ => continue,
-                    };
-                }
-            };
-
-            moved_rocks += 1;
-
-            W(current_rock.pos.borrow_mut()).apply(&next_pos);
+        for current_rock in &mut moving_rocks {
+            any_rock_moved |= try_move_rock(current_rock, map_data, state);
         }
 
-        if moved_rocks == 0 {
+        if !any_rock_moved {
             break;
         }
 
@@ -88,6 +58,44 @@ pub(super) fn tilt(
     }
 
     Ok(())
+}
+
+fn try_move_rock(moving_rock: &mut MovingRock, map_data: &MapData, state: &MapState) -> bool {
+    let Some(next_pos) = W(&moving_rock.pos).try_add(&moving_rock.direction.to_offset()) else {
+        return false;
+    };
+
+    let Some(tile_at_next_position) = map_data.map.get(&next_pos) else {
+        return false;
+    };
+
+    match tile_at_next_position.rock {
+        RockKind::Empty => {}
+        RockKind::RoundRock | RockKind::SquareRock => return false,
+        RockKind::SingleReflect(diagonal) => {
+            let mut reflect_directions = diagonal.horizontals().to_vec();
+
+            reflect_directions.retain(|reflect_dir| {
+                reflect_dir.to_offset() != moving_rock.direction.to_offset().neg()
+            });
+
+            match reflect_directions.len() {
+                1 => moving_rock.direction = reflect_directions[0],
+                _ => return false,
+            };
+        }
+    };
+
+    // If the other rock is still moving, this `moving_rock` will wait a turn for it to move out of the way.
+    // This produces a "lagging" motion for this Rock.
+    // When the other Rock doesn't move, this one also wont and the turn will end.
+    if state.rock_positions.contains(&next_pos) {
+        return false;
+    }
+
+    W(moving_rock.pos.borrow_mut()).apply(&next_pos);
+
+    true
 }
 
 fn sort_rock_for_rotation_fn(rotate_towards: Horizontal, map: &Map) -> Box<dyn Fn(&Pos) -> u32> {
@@ -125,12 +133,13 @@ mod test {
             # o o . . # . . . .",
         );
 
+        let win = WinCondition {
+            general: GeneralWinConditions { max_moves: None },
+            rocks: RockWinConditions::Pos(vec![]),
+        };
         let mut map_data = MapData {
             map,
-            win: WinCondition {
-                general: GeneralWinConditions { max_moves: None },
-                rocks: RockWinConditions::Pos(vec![]),
-            },
+            win: win.clone(),
         };
 
         let mut state = prepare_map(&mut map_data);
@@ -153,8 +162,9 @@ mod test {
             }
         }
 
-        let expected = Map::from(
-            r". . . . . # . . . . 
+        let mut expected = MapData {
+            map: Map::from(
+                r". . . . . # . . . . 
             . . . . # . . . o # 
             . . . . . # # . . . 
             . . o # . . . . . . 
@@ -164,8 +174,13 @@ mod test {
             . . . . . . . o o o 
             # . . . o # # # . o 
             # . o o o # . . . o",
-        );
+            ),
+            win,
+        };
 
-        assert_eq!(expected, map_data.map);
+        let mut expected_state = prepare_map(&mut expected);
+
+        assert_eq!(expected.map, map_data.map);
+        assert_eq!(expected_state, state);
     }
 }

@@ -1,8 +1,5 @@
-use std::collections::HashSet;
-
 use classes::{LostReason, RoundResult, RoundStats};
 use game_classes::{MapState, RockWinConditions, WinCondition};
-use maps::prelude::*;
 
 pub(super) fn check_result(
     win: &WinCondition,
@@ -10,13 +7,10 @@ pub(super) fn check_result(
     round_stats: &RoundStats,
 ) -> Option<RoundResult> {
     match &win.rocks {
-        RockWinConditions::Pos(pos) => {
-            let rock_pos = state.rock_positions.iter().collect::<HashSet<&Pos>>();
-
-            pos.iter()
-                .all(|pos| rock_pos.contains(pos))
-                .then_some(RoundResult::Won)
-        }
+        RockWinConditions::Pos(pos) => pos
+            .iter()
+            .all(|pos| state.rock_positions.contains(pos))
+            .then_some(RoundResult::Won),
         RockWinConditions::Exit(_) => todo!(),
     }
     .or_else(|| {

@@ -1,4 +1,4 @@
-use std::vec;
+use std::collections::HashSet;
 
 use classes::Level;
 use game_classes::{MapData, MapState};
@@ -26,7 +26,7 @@ pub fn prepare_map(map_data: &mut MapData) -> MapState {
     );
 
     let mut initial_state = MapState {
-        rock_positions: vec![],
+        rock_positions: HashSet::new(),
     };
 
     let all_pos = map_data.map.all_pos().copied().collect::<Vec<_>>();
@@ -38,7 +38,7 @@ pub fn prepare_map(map_data: &mut MapData) -> MapState {
         if tile.rock == RockKind::RoundRock {
             tile.rock = RockKind::Empty;
 
-            initial_state.rock_positions.push(pos);
+            assert!(initial_state.rock_positions.insert(pos));
         }
     }
 

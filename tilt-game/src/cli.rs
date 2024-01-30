@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 use console::{style, Term};
 
 use classes::RoundResult;
-use maps::prelude::RockKind;
+use maps::prelude::{Diagonal, RockKind};
 
 use crate::game::setting;
 
@@ -93,18 +93,23 @@ pub fn write_help_text(term: &Term) -> io::Result<()> {
 Move the rocks around to win!
 
 Rock Types
-- empty space ({0})
-- round, rolling rocks ({1})
-- solid, non moving rocks ({2})
+- empty Space ({0})
+- round, rolling Rocks ({1})
+- solid, non moving Rocks ({2})
+- direction changing Corners ({3}, {4}, {5}, {6})
 
 Controls:
-[arrow keys] or wasd => move rocks / tilt platform
+Arrow or WASD Keys => move Rocks / tilt Platform
 Escape => quit the game
 h, ? => help
 : => CLI
 ",
         RockKind::Empty,
         RockKind::RoundRock,
-        RockKind::SquareRock
+        RockKind::SquareRock,
+        RockKind::SingleReflect(Diagonal::BottomLeft),
+        RockKind::SingleReflect(Diagonal::BottomRight),
+        RockKind::SingleReflect(Diagonal::TopLeft),
+        RockKind::SingleReflect(Diagonal::TopRight),
     ))
 }
