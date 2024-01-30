@@ -1,30 +1,22 @@
-use classes::Level;
-use game_classes::MapData;
-use maps::prelude::Map;
+use std::vec;
 
-pub fn load_map_data(level: Level) -> MapData {
+use classes::Level;
+use game_classes::{MapData, MapState};
+use maps::prelude::{Map, RockKind};
+
+pub fn load_map_data(level: Level) -> (MapData, MapState) {
     let data = level.get_data();
 
-    let mut map_data = ron::from_str::<MapData>(data);
+    let map_data = ron::from_str::<MapData>(data);
 
     let mut map_data = map_data.unwrap_or_else(|_| panic!("Should load level {level:?}"));
 
-    // if map_data.map.row_iter(0).next().is_none() {
-    //     map_data.map.items.retain(|pos, _item| pos.y > 0);
-    // }
+    let initial_state = prepare_map(&mut map_data);
 
-    // let last_row = map_data
-    //     .map
-    //     .items
-    //     .keys()
-    //     .map(|pos| pos.y)
-    //     .max()
-    //     .unwrap_or_default();
+    (map_data, initial_state)
+}
 
-    // if map_data.map.row_iter(last_row).next().is_none() {
-    //     map_data.map.items.retain(|pos, _item| pos.y != last_row);
-    // }
-
+pub fn prepare_map(map_data: &mut MapData) -> MapState {
     map_data.map = Map::new(
         map_data
             .map
@@ -33,5 +25,22 @@ pub fn load_map_data(level: Level) -> MapData {
             .map(std::iter::Iterator::cloned),
     );
 
-    map_data
+    let mut initial_state = MapState {
+        rock_positions: vec![],
+    };
+
+    let all_pos = map_data.map.all_pos().copied().collect::<Vec<_>>();
+    for pos in all_pos {
+        let Some(tile) = map_data.map.get_mut(&pos) else {
+            continue;
+        };
+
+        if tile.rock == RockKind::RoundRock {
+            tile.rock = RockKind::Empty;
+
+            initial_state.rock_positions.push(pos);
+        }
+    }
+
+    initial_state
 }

@@ -1,9 +1,9 @@
-use std::{borrow::BorrowMut, thread::sleep, time::Duration};
+use std::{borrow::BorrowMut, ops::Neg, thread::sleep, time::Duration};
 
 use console::Term;
 
 use classes::RoundStats;
-use game_classes::MapData;
+use game_classes::{MapData, MapState};
 use maps::{prelude::*, W};
 
 use crate::{
@@ -14,26 +14,27 @@ use crate::{
 pub(super) fn tilt(
     term: &Term,
     rotate_towards: Horizontal,
-    map_data: &mut MapData,
-    rock_pos: &mut [Pos],
-    stats: &RoundStats,
+    map_data: &MapData,
+    state: &mut MapState,
+    round_stats: &RoundStats,
 ) -> Result<()> {
-    struct MovingRock<'a> {
-        pos: &'a mut Pos,
+    struct MovingRock {
+        pos: Pos,
         direction: Horizontal,
     }
 
-    let mut moving_rocks = rock_pos
-        .iter_mut()
+    let mut moving_rocks = state
+        .rock_positions
+        .iter()
         .map(|pos| MovingRock {
-            pos,
+            pos: *pos,
             direction: rotate_towards,
         })
         .collect::<Vec<_>>();
 
     let sort_fn = sort_rock_for_rotation_fn(rotate_towards, &map_data.map);
 
-    moving_rocks.sort_unstable_by_key(|moving_rock| sort_fn(moving_rock.pos));
+    moving_rocks.sort_unstable_by_key(|moving_rock| sort_fn(&moving_rock.pos));
 
     let dur = setting()
         .move_delay()
@@ -45,8 +46,7 @@ pub(super) fn tilt(
         for rock in &mut moving_rocks {
             let current_rock = rock;
 
-            let Some(next_pos) =
-                W(current_rock.pos as &Pos).try_add(&current_rock.direction.to_offset())
+            let Some(next_pos) = W(&current_rock.pos).try_add(&current_rock.direction.to_offset())
             else {
                 continue;
             };
@@ -61,8 +61,10 @@ pub(super) fn tilt(
                 RockKind::SingleReflect(diagonal) => {
                     let mut reflect_directions = diagonal.horizontals().to_vec();
 
-                    reflect_directions.retain(|reflect_dir| *reflect_dir != current_rock.direction);
-                    todo!();
+                    reflect_directions.retain(|reflect_dir| {
+                        reflect_dir.to_offset() != current_rock.direction.to_offset().neg()
+                    });
+
                     match reflect_directions.len() {
                         1 => current_rock.direction = reflect_directions[0],
                         _ => continue,
@@ -70,7 +72,6 @@ pub(super) fn tilt(
                 }
             };
 
-            map_data.map.swap(current_rock.pos, &next_pos);
             moved_rocks += 1;
 
             W(current_rock.pos.borrow_mut()).apply(&next_pos);
@@ -80,16 +81,13 @@ pub(super) fn tilt(
             break;
         }
 
-        print_map(term, map_data, stats)?;
+        state.rock_positions = moving_rocks.iter().map(|rock| rock.pos).collect();
+
+        print_map(term, map_data, state, round_stats)?;
         sleep(dur);
     }
 
     Ok(())
-}
-
-pub(super) fn get_all_round_rocks(map: &Map) -> impl Iterator<Item = &Pos> {
-    map.all_pos()
-        .filter(|pos| map.get(pos).map(|tile| tile.rock) == Some(RockKind::RoundRock))
 }
 
 fn sort_rock_for_rotation_fn(rotate_towards: Horizontal, map: &Map) -> Box<dyn Fn(&Pos) -> u32> {
@@ -108,23 +106,24 @@ fn sort_rock_for_rotation_fn(rotate_towards: Horizontal, map: &Map) -> Box<dyn F
 mod test {
     use game_classes::{GeneralWinConditions, RockWinConditions, WinCondition};
 
+    use crate::assets::prepare_map;
+
     use super::*;
 
     #[test]
     fn spin() {
         let map = Map::from(
-            r"○ . . . . ▨ . . . .
-            ○ . ○ ○ ▨ . . . . ▨
-            . . . . . ▨ ▨ . . .
-            ○ ○ . ▨ ○ . . . . ○
-            . ○ . . . . . ○ ▨ .
-            ○ . ▨ . . ○ . ▨ . ▨
-            . . ○ . . ▨ ○ . . ○
-            . . . . . . . ○ . .
-            ▨ . . . . ▨ ▨ ▨ . .
-            ▨ ○ ○ . . ▨ . . . .",
+            r"o . . . . # . . . .
+            o . o o # . . . . #
+            . . . . . # # . . .
+            o o . # o . . . . o
+            . o . . . . . o # .
+            o . # . . o . # . #
+            . . o . . # o . . o
+            . . . . . . . o . .
+            # . . . . # # # . .
+            # o o . . # . . . .",
         );
-        let mut rock_pos = get_all_round_rocks(&map).copied().collect::<Vec<_>>();
 
         let mut map_data = MapData {
             map,
@@ -133,6 +132,8 @@ mod test {
                 rocks: RockWinConditions::Pos(vec![]),
             },
         };
+
+        let mut state = prepare_map(&mut map_data);
 
         for _ in 0..3 {
             for direction in [
@@ -144,8 +145,8 @@ mod test {
                 tilt(
                     &Term::buffered_stdout(),
                     direction,
-                    &mut map_data,
-                    &mut rock_pos,
+                    &map_data,
+                    &mut state,
                     &RoundStats::default(),
                 )
                 .expect("Tilting should not fail");
@@ -153,16 +154,16 @@ mod test {
         }
 
         let expected = Map::from(
-            r". . . . . ▨ . . . . 
-            . . . . ▨ . . . ○ ▨ 
-            . . . . . ▨ ▨ . . . 
-            . . ○ ▨ . . . . . . 
-            . . . . . ○ ○ ○ ▨ . 
-            . ○ ▨ . . . ○ ▨ . ▨ 
-            . . . . ○ ▨ . . . ○ 
-            . . . . . . . ○ ○ ○ 
-            ▨ . . . ○ ▨ ▨ ▨ . ○ 
-            ▨ . ○ ○ ○ ▨ . . . ○",
+            r". . . . . # . . . . 
+            . . . . # . . . o # 
+            . . . . . # # . . . 
+            . . o # . . . . . . 
+            . . . . . o o o # . 
+            . o # . . . o # . # 
+            . . . . o # . . . o 
+            . . . . . . . o o o 
+            # . . . o # # # . o 
+            # . o o o # . . . o",
         );
 
         assert_eq!(expected, map_data.map);

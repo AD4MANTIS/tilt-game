@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::{
@@ -7,22 +8,35 @@ use crate::{
 
 use super::Map;
 
-pub struct ColumnIter<'a, T: FromStr>(&'a Map<T>, Pos);
+pub struct ColumnIter<'a, T: FromStr + Debug>(&'a Map<T>, Pos)
+where
+    <T as FromStr>::Err: Debug;
 
-impl<'a, T: FromStr> ColumnIter<'a, T> {
+impl<'a, T: FromStr + Debug> ColumnIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     pub const fn new(map: &'a Map<T>, column: u32) -> Self {
         Self(map, Pos::new(column, 0))
     }
 }
-pub struct ColumnsIter<'a, T: FromStr>(&'a Map<T>, u32);
+pub struct ColumnsIter<'a, T: FromStr + Debug>(&'a Map<T>, u32)
+where
+    <T as FromStr>::Err: Debug;
 
-impl<'a, T: FromStr> ColumnsIter<'a, T> {
+impl<'a, T: FromStr + Debug> ColumnsIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     pub const fn new(map: &'a Map<T>) -> Self {
         Self(map, 0)
     }
 }
 
-impl<'a, T: FromStr> Iterator for ColumnIter<'a, T> {
+impl<'a, T: FromStr + Debug> Iterator for ColumnIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -34,7 +48,10 @@ impl<'a, T: FromStr> Iterator for ColumnIter<'a, T> {
     }
 }
 
-impl<'a, T: FromStr> Iterator for ColumnsIter<'a, T> {
+impl<'a, T: FromStr + Debug> Iterator for ColumnsIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     type Item = ColumnIter<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {

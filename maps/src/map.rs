@@ -17,12 +17,18 @@ use self::{
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(from = "&str")]
-pub struct Map<T: FromStr = Tile> {
+pub struct Map<T: FromStr + Debug = Tile>
+where
+    <T as FromStr>::Err: Debug,
+{
     pub rect: URect,
     pub items: HashMap<Pos, T>,
 }
 
-impl<T: FromStr> Index<&Pos> for Map<T> {
+impl<T: FromStr + Debug> Index<&Pos> for Map<T>
+where
+    <T as FromStr>::Err: Debug,
+{
     type Output = T;
 
     #[inline]
@@ -31,7 +37,10 @@ impl<T: FromStr> Index<&Pos> for Map<T> {
     }
 }
 
-impl<T: FromStr> Map<T> {
+impl<T: FromStr + Debug> Map<T>
+where
+    <T as FromStr>::Err: Debug,
+{
     /// # Panics
     ///
     /// Panics if the map is too big.
@@ -122,7 +131,10 @@ impl<T: FromStr> Map<T> {
     }
 }
 
-impl<T: Clone + FromStr> Map<T> {
+impl<T: Clone + FromStr + Debug> Map<T>
+where
+    <T as FromStr>::Err: Debug,
+{
     #[allow(clippy::missing_panics_doc)]
     pub fn swap(&mut self, pos1: &Pos, pos2: &Pos) {
         let Some(val1) = self.get(pos1).cloned() else {
@@ -143,9 +155,14 @@ impl<T: Clone + FromStr> Map<T> {
     }
 }
 
-pub struct AllPosIter<'a, T: FromStr>(&'a Map<T>, Option<Pos>);
+pub struct AllPosIter<'a, T: FromStr + Debug>(&'a Map<T>, Option<Pos>)
+where
+    <T as FromStr>::Err: Debug;
 
-impl<'a, T: FromStr> Iterator for AllPosIter<'a, T> {
+impl<'a, T: FromStr + Debug> Iterator for AllPosIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     type Item = Pos;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -168,7 +185,10 @@ impl<'a, T: FromStr> Iterator for AllPosIter<'a, T> {
     }
 }
 
-impl<T: Default + Clone + FromStr> Map<T> {
+impl<T: Default + Clone + FromStr + Debug> Map<T>
+where
+    <T as FromStr>::Err: Debug,
+{
     #[must_use]
     pub fn with_size(x: u32, y: u32) -> Self {
         let row = (0..x).map(|_| T::default());
@@ -176,9 +196,10 @@ impl<T: Default + Clone + FromStr> Map<T> {
     }
 }
 
-impl<T: FromStr> FromStr for Map<T>
+impl<T: FromStr + Debug> FromStr for Map<T>
 where
     Self: for<'a> From<&'a str>,
+    <T as FromStr>::Err: Debug,
 {
     type Err = Infallible;
 
@@ -187,11 +208,14 @@ where
     }
 }
 
-impl<T: FromStr> From<&str> for Map<T> {
+impl<T: FromStr + Debug> From<&str> for Map<T>
+where
+    <T as FromStr>::Err: Debug,
+{
     fn from(value: &str) -> Self {
         Self::new(value.lines().map(|line| {
             line.split_whitespace()
-                .map(|field| T::from_str(field).ok().expect("should parse field"))
+                .map(|field| T::from_str(field).expect("should parse field"))
         }))
     }
 }

@@ -1,7 +1,7 @@
 use console::{style, Key, Term};
 
 use classes::RoundStats;
-use game_classes::MapData;
+use game_classes::{MapData, MapState};
 use maps::prelude::*;
 
 use crate::{
@@ -14,9 +14,9 @@ use super::{tilt::tilt, winning::check_result};
 pub(super) fn handle_input(
     term: &Term,
     input: &Key,
-    map_data: &mut MapData,
-    stats: &mut RoundStats,
-    rock_pos: &mut [Pos],
+    map_data: &MapData,
+    state: &mut MapState,
+    round_stats: &mut RoundStats,
 ) -> Result<Option<Action>> {
     let mut rotate_towards = None::<Horizontal>;
 
@@ -49,11 +49,11 @@ pub(super) fn handle_input(
     };
 
     if let Some(rotate_towards) = rotate_towards {
-        stats.moves += 1;
+        round_stats.moves += 1;
 
-        tilt(term, rotate_towards, map_data, rock_pos, stats)?;
+        tilt(term, rotate_towards, map_data, state, round_stats)?;
 
-        if let Some(round_result) = check_result(map_data, stats) {
+        if let Some(round_result) = check_result(&map_data.win, state, round_stats) {
             return Ok(Some(Action::Result(round_result)));
         }
     }

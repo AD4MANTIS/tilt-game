@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::{
@@ -8,24 +9,37 @@ use crate::{
 use super::Map;
 
 #[derive(Clone)]
-pub struct RowIter<'a, T: FromStr>(&'a Map<T>, Pos);
+pub struct RowIter<'a, T: FromStr + Debug>(&'a Map<T>, Pos)
+where
+    <T as FromStr>::Err: Debug;
 
-impl<'a, T: FromStr> RowIter<'a, T> {
+impl<'a, T: FromStr + Debug> RowIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     pub const fn new(map: &'a Map<T>, row: u32) -> Self {
         Self(map, Pos::new(0, row))
     }
 }
 
 #[derive(Clone)]
-pub struct RowsIter<'a, T: FromStr>(&'a Map<T>, u32);
+pub struct RowsIter<'a, T: FromStr + Debug>(&'a Map<T>, u32)
+where
+    <T as FromStr>::Err: Debug;
 
-impl<'a, T: FromStr> RowsIter<'a, T> {
+impl<'a, T: FromStr + Debug> RowsIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     pub const fn new(map: &'a Map<T>) -> Self {
         Self(map, 0)
     }
 }
 
-impl<'a, T: FromStr> Iterator for RowIter<'a, T> {
+impl<'a, T: FromStr + Debug> Iterator for RowIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -37,7 +51,10 @@ impl<'a, T: FromStr> Iterator for RowIter<'a, T> {
     }
 }
 
-impl<'a, T: FromStr> Iterator for RowsIter<'a, T> {
+impl<'a, T: FromStr + Debug> Iterator for RowsIter<'a, T>
+where
+    <T as FromStr>::Err: Debug,
+{
     type Item = RowIter<'a, T>;
 
     fn next(&mut self) -> Option<Self::Item> {

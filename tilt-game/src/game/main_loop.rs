@@ -3,7 +3,7 @@ use std::{str::FromStr, thread, time::Duration};
 use console::{style, Key, Term};
 
 use classes::{Level, RoundResult, RoundStats};
-use game_classes::MapData;
+use game_classes::{MapData, MapState};
 
 use super::{data::saving, logic::print_map};
 use crate::{assets::load_map_data, cli::Action, Error, Result};
@@ -33,7 +33,7 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
 
     // When this loop ends the game quits
     loop {
-        let result = super::logic::play_level(term, &mut map_data, &mut stats);
+        let result = super::logic::play_level(term, &map_data.0, &mut map_data.1, &mut stats);
 
         let action = match result {
             Err(err) => {
@@ -90,20 +90,19 @@ fn run_main_loop(term: &Term, term_err: &Term) -> Result<()> {
     Ok(())
 }
 
-fn reload_level(current_level: Level, term: &Term, stats: &mut RoundStats) -> Result<MapData> {
-    let map_data = load_map_data(current_level);
-    *stats = RoundStats::default();
-
-    print_map(term, &map_data, stats)?;
-
-    Ok(map_data)
+fn reload_level(
+    current_level: Level,
+    term: &Term,
+    stats: &mut RoundStats,
+) -> Result<(MapData, MapState)> {
+    load_level(current_level, term, stats)
 }
 
-fn load_level(level: Level, term: &Term, stats: &mut RoundStats) -> Result<MapData> {
+fn load_level(level: Level, term: &Term, stats: &mut RoundStats) -> Result<(MapData, MapState)> {
     let map_data = load_map_data(level);
     *stats = RoundStats::default();
 
-    print_map(term, &map_data, stats)?;
+    print_map(term, &map_data.0, &map_data.1, stats)?;
 
     Ok(map_data)
 }
