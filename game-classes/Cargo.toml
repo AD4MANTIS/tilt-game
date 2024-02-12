@@ -8,9 +8,9 @@ edition.workspace = true
 workspace = true
 
 [dependencies]
-maps = { workspace = true }
-classes = { workspace = true }
+maps.workspace = true
+classes.workspace = true
 
-console = { workspace = true }
-serde = { workspace = true }
+console.workspace = true
+serde.workspace = true
 

@@ -9,8 +9,8 @@ authors.workspace = true
 workspace = true
 
 [dependencies]
-classes = { workspace = true }
+classes.workspace = true
 
-serde = { workspace = true }
-thiserror = { workspace = true }
-bevy_math = { workspace = true }
+serde.workspace = true
+thiserror.workspace = true
+bevy_math.workspace = true

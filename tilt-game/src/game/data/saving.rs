@@ -38,6 +38,6 @@ pub fn get_save() -> Option<Save> {
 
 pub fn save(save: &Save) -> Option<()> {
     fs::create_dir_all(get_save_dir()?).ok()?;
-    fs::write(get_save_path()?, ron::to_string(save).ok()?).unwrap();
+    fs::write(get_save_path()?, ron::to_string(save).ok()?).ok()?;
     Some(())
 }

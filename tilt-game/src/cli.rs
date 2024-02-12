@@ -2,8 +2,9 @@ use std::io;
 
 use clap::{Parser, Subcommand};
 use console::{style, Term};
+use strum::VariantNames;
 
-use classes::RoundResult;
+use classes::{Level, RoundResult};
 use maps::prelude::{Diagonal, RockKind};
 
 use crate::game::setting;
@@ -21,11 +22,11 @@ enum Commands {
     /// Shows the about Information
     About {},
 
-    /// Load a level with the given Name
-    Level { level: String },
+    #[command(subcommand)]
+    Level(LevelCommands),
 
     /**
-    List the settings
+    List the Settings
     Located at:
     - `~/.config/tilt-game`
     - `%appdata%/tilt-game/config`
@@ -35,6 +36,19 @@ enum Commands {
         #[arg(short, long)]
         list: bool,
     },
+
+    /// Show the Games help
+    #[command(name = "?", alias = "h")]
+    Help,
+}
+
+#[derive(Subcommand, Debug)]
+enum LevelCommands {
+    /// List all Levels
+    List,
+
+    /// Load a Level with the given Name
+    Load { level: String },
 }
 
 pub enum Action {
@@ -56,11 +70,6 @@ pub enum CmdError {
 pub fn parse_cmd(term: &Term) -> Result<Option<Action>> {
     let cmd = term.read_line()?;
 
-    if cmd.trim() == "?" {
-        write_help_text(term)?;
-        return Ok(None);
-    }
-
     let cli = match Cli::try_parse_from(std::iter::once("").chain(cmd.split(' '))) {
         Ok(cli) => cli,
         Err(err) => {
@@ -71,10 +80,14 @@ pub fn parse_cmd(term: &Term) -> Result<Option<Action>> {
 
     match cli.command {
         Commands::About {} => write_about_info(term)?,
-        Commands::Level { level } => return Ok(Some(Action::LoadLevel(level))),
+        Commands::Level(cmd) => match cmd {
+            LevelCommands::List => term.write_line(Level::VARIANTS.join("\n").as_str())?,
+            LevelCommands::Load { level } => return Ok(Some(Action::LoadLevel(level))),
+        },
         Commands::Settings { list: _ } => {
             term.write_line(&format!("{:?}", setting()))?;
         }
+        Commands::Help => write_help_text(term)?,
     };
 
     Ok(None)
