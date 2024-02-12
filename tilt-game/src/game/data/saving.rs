@@ -1,4 +1,7 @@
-use std::fs;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -19,12 +22,12 @@ impl Default for Save {
     }
 }
 
-fn get_save_path() -> Option<std::path::PathBuf> {
-    let Some(project_dir) = PROJECT_DIR.as_ref() else {
-        return None;
-    };
+fn get_save_dir() -> Option<&'static Path> {
+    PROJECT_DIR.as_ref().map(directories::ProjectDirs::data_dir)
+}
 
-    let mut save_file_path = project_dir.data_dir().to_path_buf();
+fn get_save_path() -> Option<PathBuf> {
+    let mut save_file_path = get_save_dir()?.to_path_buf();
     save_file_path.push("save.toml");
     Some(save_file_path)
 }
@@ -34,6 +37,7 @@ pub fn get_save() -> Option<Save> {
 }
 
 pub fn save(save: &Save) -> Option<()> {
-    fs::write(get_save_path()?, ron::to_string(save).ok()?).ok()?;
+    fs::create_dir_all(get_save_dir()?).ok()?;
+    fs::write(get_save_path()?, ron::to_string(save).ok()?).unwrap();
     Some(())
 }
