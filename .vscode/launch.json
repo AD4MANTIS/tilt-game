@@ -7,6 +7,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'tilt-game'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=tilt-game",
+                    "--package=tilt-game"
+                ],
+                "filter": {
+                    "name": "tilt-game",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'tilt-game'",
             "cargo": {
                 "args": [
@@ -18,24 +36,6 @@
                 "filter": {
                     "name": "tilt-game",
                     "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug executable 'tilt-game'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=tilt-game",
-                    "--package=tilt-game"
-                ],
-                "filter": {
-                    "name": "tilt-game",
-                    "kind": "bin"
                 }
             },
             "args": [],
