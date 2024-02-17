@@ -12,8 +12,14 @@ use crate::{
 };
 
 struct MovingRock {
-    pub pos: Pos,
-    pub direction: Horizontal,
+    pos: Pos,
+    direction: Horizontal,
+}
+
+impl MovingRock {
+    fn try_get_next_pos(&self) -> Option<Pos> {
+        W(&self.pos).try_add(&self.direction.to_offset())
+    }
 }
 
 pub(super) fn tilt(
@@ -44,7 +50,7 @@ pub(super) fn tilt(
         let mut any_rock_moved = false;
 
         for current_rock in &mut moving_rocks {
-            any_rock_moved |= try_move_rock(current_rock, map_data, state);
+            any_rock_moved |= try_move_and_update_rock(current_rock, map_data, state);
         }
 
         if !any_rock_moved {
@@ -60,8 +66,12 @@ pub(super) fn tilt(
     Ok(())
 }
 
-fn try_move_rock(moving_rock: &mut MovingRock, map_data: &MapData, state: &MapState) -> bool {
-    let Some(next_pos) = W(&moving_rock.pos).try_add(&moving_rock.direction.to_offset()) else {
+fn try_move_and_update_rock(
+    moving_rock: &mut MovingRock,
+    map_data: &MapData,
+    state: &MapState,
+) -> bool {
+    let Some(next_pos) = moving_rock.try_get_next_pos() else {
         return false;
     };
 
@@ -69,6 +79,26 @@ fn try_move_rock(moving_rock: &mut MovingRock, map_data: &MapData, state: &MapSt
         return false;
     };
 
+    if !try_adjust_rock_movement_from_new_tile(tile_at_next_position, moving_rock) {
+        return false;
+    }
+
+    // If the other rock is still moving, this `moving_rock` will wait a turn for it to move out of the way.
+    // This produces a "lagging" motion for this Rock.
+    // When the other Rock doesn't move, this one also wont and the turn will end.
+    if state.rock_positions.contains(&next_pos) {
+        return false;
+    }
+
+    W(moving_rock.pos.borrow_mut()).apply(&next_pos);
+
+    true
+}
+
+fn try_adjust_rock_movement_from_new_tile(
+    tile_at_next_position: &Tile,
+    moving_rock: &mut MovingRock,
+) -> bool {
     match tile_at_next_position.rock {
         RockKind::Empty => {}
         RockKind::RoundRock | RockKind::SquareRock => return false,
@@ -82,18 +112,9 @@ fn try_move_rock(moving_rock: &mut MovingRock, map_data: &MapData, state: &MapSt
             match reflect_directions.len() {
                 1 => moving_rock.direction = reflect_directions[0],
                 _ => return false,
-            };
+            }
         }
     };
-
-    // If the other rock is still moving, this `moving_rock` will wait a turn for it to move out of the way.
-    // This produces a "lagging" motion for this Rock.
-    // When the other Rock doesn't move, this one also wont and the turn will end.
-    if state.rock_positions.contains(&next_pos) {
-        return false;
-    }
-
-    W(moving_rock.pos.borrow_mut()).apply(&next_pos);
 
     true
 }
@@ -178,7 +199,15 @@ mod test {
             win,
         };
 
-        let mut expected_state = prepare_map(&mut expected);
+        let expected_state = prepare_map(&mut expected);
+
+        let _ = print_map(&Term::stdout(), &map_data, &state, &RoundStats { moves: 1 });
+        let _ = print_map(
+            &Term::stdout(),
+            &expected,
+            &expected_state,
+            &RoundStats { moves: 1 },
+        );
 
         assert_eq!(expected.map, map_data.map);
         assert_eq!(expected_state, state);
