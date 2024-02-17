@@ -26,7 +26,9 @@ pub fn print_map(
     parts.retain(|part| !part.is_empty());
     let display = parts.join("\n");
 
+    #[cfg(not(test))]
     term.clear_screen()?;
+
     term.write_line(&display)?;
 
     Ok(())

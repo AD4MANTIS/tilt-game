@@ -35,22 +35,26 @@ impl Settings {
 pub(super) static PROJECT_DIR: Lazy<Option<ProjectDirs>> =
     Lazy::new(|| ProjectDirs::from("", "", "tilt-game"));
 
-pub(super) static SETTINGS: Lazy<Settings> = Lazy::new(|| {
-    let mut builder = Config::builder();
+static SETTINGS: Lazy<Settings> = Lazy::new(|| {
+    if cfg!(test) {
+        Settings::default()
+    } else {
+        let mut builder = Config::builder();
 
-    if let Some(project_dir) = PROJECT_DIR.as_ref() {
-        let mut config_file = project_dir.config_dir().to_path_buf();
-        config_file.push("settings.toml");
-        if let Some(config_file) = config_file.to_str() {
-            builder = builder.add_source(File::with_name(config_file));
+        if let Some(project_dir) = PROJECT_DIR.as_ref() {
+            let mut config_file = project_dir.config_dir().to_path_buf();
+            config_file.push("settings.toml");
+            if let Some(config_file) = config_file.to_str() {
+                builder = builder.add_source(File::with_name(config_file));
+            }
         }
-    }
 
-    builder
-        .add_source(config::Environment::with_prefix("TiltGame"))
-        .build()
-        .and_then(config::Config::try_deserialize)
-        .unwrap_or_default()
+        builder
+            .add_source(config::Environment::with_prefix("TiltGame"))
+            .build()
+            .and_then(config::Config::try_deserialize)
+            .unwrap_or_default()
+    }
 });
 
 pub fn setting() -> &'static Settings {
